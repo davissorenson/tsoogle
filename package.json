@@ -1,0 +1,13 @@
+{
+  "name": "tsoogle",
+  "version": "0.0.1",
+  "description": "Hoogle for TypeScript",
+  "main": "lib/index.js",
+  "repository": "git@github.com:davissorenson/tsoogle.git",
+  "author": "Davis Sorenson <davis.sorenson@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "ts-morph": "^10.1.0"
+  }
+}

@@ -7,6 +7,9 @@
   "author": "Davis Sorenson <davis.sorenson@gmail.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "test": "NODE_ENV=test jest -c jest.config.json"
+  },
   "devDependencies": {
     "@types/jest": "26.0.23",
     "@types/node": "15.6.0",

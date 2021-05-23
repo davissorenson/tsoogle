@@ -94,7 +94,7 @@ const logDeclarations = (
     const parametersTypes = d
       .getParameters()
       .map((p) => tc.getTypeText(p.getType()));
-    const returnType = d.getReturnType();
+    const returnType = tc.getTypeText(d.getReturnType());
     console.log(`name: ${name}`);
     console.log(`parameters: ${parametersTypes}`);
     console.log(`return type: ${returnType}`);
@@ -105,7 +105,7 @@ const logDeclarations = (
     const parametersTypes = arrowFn
       .getParameters()
       .map((p) => tc.getTypeText(p.getType()));
-    const returnType = arrowFn.getReturnType();
+    const returnType = tc.getTypeText(arrowFn.getReturnType());
     console.log(`name: ${name}`);
     console.log(`parameters: ${parametersTypes}`);
     console.log(`return type: ${returnType}`);
@@ -119,13 +119,3 @@ console.log("\n\n\n");
 
 console.log("functions.ts declarations:");
 logDeclarations(functionsDeclarations);
-
-// functions.forEach((fn) => {
-//   console.log(`name: ${fn.getName()}`);
-//   console.log(
-//     `arguments type: ${fn
-//       .getParameters()
-//       .map((t) => tc.getTypeText(t.getType()))}`
-//   );
-//   console.log(`return type: ${tc.getTypeText(fn.getReturnType())}`);
-// });

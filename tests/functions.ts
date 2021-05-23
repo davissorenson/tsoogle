@@ -18,6 +18,14 @@ export function function1B(n: number, m: string): string[] {
   return [n.toString(), m];
 }
 
+export function simpleFunction1(a: string[]): string[] {
+  return a;
+}
+
+export function simpleFunction2(a: string): string {
+  return a;
+}
+
 export function function2A(
   someStruct: SomeImportedType,
   anotherStruct: AnotherImportedType

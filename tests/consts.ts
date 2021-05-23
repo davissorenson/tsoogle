@@ -22,7 +22,7 @@ export const higherOrderFunction1 = (a: string) => (b: string) => {
   return `${a}${b}`;
 };
 
-export const simpleFn = (a: string): string => {
+export const simpleFunction1 = (a: string): string => {
   return a;
 };
 

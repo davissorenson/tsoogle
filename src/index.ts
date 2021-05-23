@@ -1,11 +1,11 @@
 import R from "ramda";
 import {
-  ArrowFunction,
   ExportedDeclarations,
   KindToNodeMappings,
   Project,
   SyntaxKind,
 } from "ts-morph";
+import { NamedExportedArrowFn } from "./types";
 
 const project = new Project();
 
@@ -70,11 +70,6 @@ const logDeclarations = (
     declarationsByKind.get(SyntaxKind.FunctionDeclaration),
     SyntaxKind.FunctionDeclaration
   );
-
-  type NamedExportedArrowFn = {
-    name: string;
-    arrowFn: ArrowFunction;
-  };
 
   const arrowFunctions = mapAsKind(
     declarationsByKind.get(SyntaxKind.VariableDeclaration),

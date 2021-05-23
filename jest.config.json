@@ -1,0 +1,12 @@
+{
+  "testEnvironment": "node",
+  "maxWorkers": "50%",
+  "testMatch": ["**/src/**/*.test.ts"],
+  "testResultsProcessor": "./node_modules/jest-junit-reporter",
+  "preset": "ts-jest",
+  "setupFilesAfterEnv": ["jest-extended"],
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "clearMocks": true,
+  "watchPathIgnorePatterns": ["/node_modules/"],
+  "roots": ["src/"]
+}

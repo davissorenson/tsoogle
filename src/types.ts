@@ -1,7 +1,7 @@
 import {
   ArrowFunction,
   FunctionDeclaration,
-  Type,
+  ts,
   VariableDeclaration,
 } from "ts-morph";
 
@@ -27,8 +27,8 @@ export type FnDeclaration = {
 };
 
 export type FnHash = {
-  parameterTypes: Type[];
-  returnType: Type;
+  parameterTypes: ts.Type[];
+  returnType: ts.Type;
 };
 
 export type Fn = FnDeclaration | ArrowFnAndDeclaration;

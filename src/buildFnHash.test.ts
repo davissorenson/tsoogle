@@ -1,21 +1,9 @@
-import R from "ramda";
-import { Project } from "ts-morph";
-import buildFnHash from "./buildFnHash";
 import declarationsToFns from "./declarationsToFns";
-import { Fn } from "./types";
+import fnHashFromFn from "./fnHashFromFn";
+import loadConstDeclarations from "./loadConstDeclarations";
+import { getFnByName } from "./utils";
 
-const project = new Project();
-project.addSourceFileAtPath("tests/consts.ts");
-const constDeclarations = Array.from(
-  project
-    .getSourceFileOrThrow("tests/consts.ts")
-    .getExportedDeclarations()
-    .values()
-).flatMap(R.identity);
-
-const getFnByName = (fns: Fn[], name: string): Fn =>
-  fns.find((fn) => fn.declaration.getName() === name)!;
-
+const constDeclarations = loadConstDeclarations();
 const fns = declarationsToFns(constDeclarations);
 const someFunction1A = getFnByName(fns, "someFunction1A");
 const someFunction1B = getFnByName(fns, "someFunction1B");
@@ -23,9 +11,9 @@ const simpleFunction1 = getFnByName(fns, "simpleFunction1");
 
 describe("buildFnHash", () => {
   describe("arrow functions", () => {
-    const someFunction1AHash = buildFnHash(someFunction1A);
-    const someFunction1BHash = buildFnHash(someFunction1B);
-    const simpleFunction1Hash = buildFnHash(simpleFunction1);
+    const someFunction1AHash = fnHashFromFn(someFunction1A);
+    const someFunction1BHash = fnHashFromFn(someFunction1B);
+    const simpleFunction1Hash = fnHashFromFn(simpleFunction1);
 
     describe("type-equivalent functions are hashed the same", () => {
       it("someFunction1A and someFunction1B", () => {

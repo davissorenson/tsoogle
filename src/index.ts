@@ -1,13 +1,7 @@
 import R from "ramda";
-import {
-  ExportedDeclarations,
-  KindToNodeMappings,
-  Project,
-  SyntaxKind,
-} from "ts-morph";
+import { ExportedDeclarations, KindToNodeMappings, SyntaxKind } from "ts-morph";
+import project from "./project";
 import { NamedExportedArrowFn } from "./types";
-
-const project = new Project();
 
 project.addSourceFileAtPath("tests/consts.ts");
 project.addSourceFileAtPath("tests/functions.ts");

@@ -1,9 +1,9 @@
-import buildFnHash from "./buildFnHash";
+import fnHashFromFn from "./fnHashFromFn";
 import { Fn, FnHash, FnIndex } from "./types";
 
 const buildFnIndex = (fns: Fn[]): FnIndex =>
   fns.reduce((allFnHashes, fn) => {
-    const hash = buildFnHash(fn);
+    const hash = fnHashFromFn(fn);
     const fnsForHash = allFnHashes.get(hash);
 
     if (fnsForHash) {
@@ -13,6 +13,6 @@ const buildFnIndex = (fns: Fn[]): FnIndex =>
     }
 
     return allFnHashes;
-  }, new Map<FnHash, Fn[]>() as FnIndex);
+  }, new Map<FnHash, Fn[]>());
 
 export default buildFnIndex;

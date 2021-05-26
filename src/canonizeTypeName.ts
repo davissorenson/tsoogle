@@ -1,17 +1,24 @@
-import { Type } from "ts-morph";
+import { assert } from "console";
+import { ArrowFunction, FunctionTypeNode } from "ts-morph";
 import { typeChecker } from "./project";
 
-function canonizeTypeName(type: string): string;
-function canonizeTypeName(type: Type): string;
-function canonizeTypeName(type: Type | string): string {
-  const typeName =
-    typeof type === "string" ? type : typeChecker.getTypeText(type);
+const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  // (a: string, b: string) => string[]
-  // =>
-  // (string, string) => string[]
+const getNthParameterName = (n: number): string => {
+  assert(
+    n < PARAMETER_NAMES.length,
+    `Ran out of variable names. Used all ${PARAMETER_NAMES.length} of them. :c`
+  );
 
-  return typeName;
+  return PARAMETER_NAMES[n];
+};
+
+function canonizeTypeName(fnType: FunctionTypeNode | ArrowFunction): string {
+  fnType
+    .getParameters()
+    .forEach((param, i) => param.rename(getNthParameterName(i)));
+
+  return typeChecker.getTypeText(fnType.getType());
 }
 
 export default canonizeTypeName;

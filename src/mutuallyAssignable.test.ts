@@ -1,5 +1,5 @@
 import declarationsToFns from "./declarationsToFns";
-import loadConstDeclarations from "./loadConstDeclarations";
+import { loadConstDeclarations } from "./loaders/loadDeclarations";
 import mutuallyAssignable from "./mutuallyAssignable";
 import { ArrowFnAndDeclaration } from "./types";
 import { getFnByName } from "./utils";

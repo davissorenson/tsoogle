@@ -1,10 +1,19 @@
+import { SyntaxKind } from "@ts-morph/common";
 import canonizeTypeName from "./canonizeTypeName";
 import declarationsToFns from "./declarationsToFns";
-import loadConstDeclarations from "./loadConstDeclarations";
+import {
+  loadConstDeclarations,
+  loadTypeDeclarations,
+} from "./loaders/loadDeclarations";
 import { ArrowFnAndDeclaration } from "./types";
 import { getFnByName } from "./utils";
+import declarationsByKind, {
+  getAllDeclarationsOfKind,
+  getDeclarationByNameOrThrow,
+} from "./utils/declarationsByKind";
 
 const constDeclarations = loadConstDeclarations();
+const typeDeclarations = loadTypeDeclarations();
 const fns = declarationsToFns(constDeclarations);
 const someFunction1A = getFnByName(
   fns,
@@ -16,6 +25,16 @@ const someFunction1B = getFnByName(
 ) as ArrowFnAndDeclaration;
 const someFunction1AFnType = someFunction1A.arrowFn;
 const someFunction1BFnType = someFunction1B.arrowFn;
+
+const typeDeclarationsByKind = declarationsByKind(typeDeclarations);
+const typeAliasDeclarations = getAllDeclarationsOfKind(
+  typeDeclarationsByKind,
+  SyntaxKind.TypeAliasDeclaration
+);
+const nestedFnType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "NestedFnType"
+);
 
 describe("canonizeTypeName", () => {
   describe("function types", () => {
@@ -29,6 +48,10 @@ describe("canonizeTypeName", () => {
       expect(canonizeTypeName(someFunction1BFnType)).toBe(
         "(a: number, b: string) => string[]"
       );
+    });
+
+    it("should work with nested function types", () => {
+      expect(canonizeTypeName(nestedFnType)).toBe("");
     });
   });
 });

@@ -1,0 +1,15 @@
+{
+  "configurations": [
+    {
+      "name": "Debug",
+      // "program": "yarn ts-node ${workspaceRoot}/debug.ts",
+      "args": ["${relativeFile}"],
+      "request": "launch",
+      "type": "node",
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+      "sourceMaps": true,
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector"
+    }
+  ]
+}

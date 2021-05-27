@@ -40,18 +40,20 @@ describe("canonizeTypeName", () => {
   describe("function types", () => {
     it("should preserve function parameters when they're already correct", () => {
       expect(canonizeTypeName(someFunction1AFnType)).toBe(
-        "(a: number, b: string) => string[]"
+        "(a0:number,b0:string)=>string[]"
       );
     });
 
     it("should rename all function parameters", () => {
       expect(canonizeTypeName(someFunction1BFnType)).toBe(
-        "(a: number, b: string) => string[]"
+        "(a0:number,b0:string)=>string[]"
       );
     });
 
     it("should work with nested function types", () => {
-      expect(canonizeTypeName(nestedFnType)).toBe("");
+      expect(canonizeTypeName(nestedFnType)).toBe(
+        "(a0:string,b0:(a1:number,b1:(a2:number,b2:string)=>void)=>number[])=>never"
+      );
     });
   });
 });

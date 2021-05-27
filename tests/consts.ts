@@ -10,8 +10,8 @@ type AnotherInternalType = {
   name: string;
 };
 
-export const someFunction1A = (a: number, b: string): string[] => {
-  return [a.toString(), b];
+export const someFunction1A = (a0: number, b0: string): string[] => {
+  return [a0.toString(), b0];
 };
 
 export const someFunction1B = (n: number, m: string): string[] => {

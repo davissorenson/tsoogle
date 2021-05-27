@@ -12,14 +12,16 @@ import { typeChecker } from "./project";
 
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const getNthParameterName = (n: number): string => {
+const getNthParameterName = (n: number, depth: number): string => {
   assert(
     n < PARAMETER_NAMES.length,
     `Ran out of variable names. Used all ${PARAMETER_NAMES.length} of them. :c`
   );
 
-  return PARAMETER_NAMES[n];
+  return `${PARAMETER_NAMES[n]}${depth}`;
 };
+
+const removeWhiteSpace = (s: string): string => s.replaceAll(/\s/g, "");
 
 const getTypeText = (node: Node): string =>
   typeChecker.getTypeText(
@@ -30,16 +32,35 @@ const getTypeText = (node: Node): string =>
       TypeFormatFlags.UseFullyQualifiedType
   );
 
-const canonizeFnTypeName = (
-  fnType: FunctionTypeNode | ArrowFunction
-): string => {
-  console.log(fnType.getParameters().map((it) => it.getName()));
+type FnType = FunctionTypeNode | ArrowFunction;
 
-  fnType
-    .getParameters()
-    .forEach((param, i) => param.rename(getNthParameterName(i)));
+const canonizeFnTypeName = (fnType: FnType): string => {
+  const inner = (scope: FnType, depth = 0): void => {
+    const parameters = scope.getParameters();
+    parameters.forEach((param, i): void => {
+      param.rename(getNthParameterName(i, depth));
+      const fnChildren = param.getChildrenOfKind(SyntaxKind.FunctionType);
 
-  return getTypeText(fnType);
+      if (fnChildren.length === 1) {
+        inner(fnChildren[0], depth + 1);
+      }
+
+      if (fnChildren.length > 1) {
+        throw new Error(
+          `What's going on here? fnChildren has length ${fnChildren.length}`
+        );
+      }
+    });
+  };
+
+  inner(fnType);
+
+  return removeWhiteSpace(
+    fnType
+      .getChildren()
+      .map((it) => it.getText())
+      .join("")
+  );
 };
 
 const canonizeTypeName = (
@@ -57,12 +78,12 @@ const canonizeTypeName = (
         type as KindToNodeMappings[SyntaxKind.ArrowFunction]
       );
     case SyntaxKind.TypeAliasDeclaration:
-      console.log(type.getChildren().map((it) => it.getKindName()));
-      console.log(type.getText());
+      // console.log(type.getChildren().map((it) => it.getKindName()));
+      // console.log(type.getText());
       const fnType = type.getChildrenOfKind(SyntaxKind.FunctionType)[0];
       return canonizeFnTypeName(fnType);
     default:
-      return getTypeText(type);
+      return removeWhiteSpace(getTypeText(type));
   }
 };
 

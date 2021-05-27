@@ -55,6 +55,12 @@ const canonizeFnTypeName = (fnType: FnType): string => {
 
   inner(fnType);
 
+  const kind = fnType.getKind();
+
+  if (kind === SyntaxKind.ArrowFunction) {
+    return removeWhiteSpace(getTypeText(fnType));
+  }
+
   return removeWhiteSpace(
     fnType
       .getChildren()

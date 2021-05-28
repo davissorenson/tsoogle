@@ -5,21 +5,6 @@ import {
   VariableDeclaration,
 } from "ts-morph";
 
-export type NamedExportedArrowFn = {
-  name: string;
-  arrowFn: ArrowFunction;
-};
-
-export interface SimpleSymbol {
-  flags: ts.SymbolFlags;
-  escapedName: ts.__String;
-}
-export interface SimpleType {
-  flags: ts.TypeFlags;
-  symbol: SimpleSymbol;
-  aliasTypeArguments?: readonly SimpleType[];
-}
-
 export enum FnType {
   FnDeclaration,
   ArrowFn,

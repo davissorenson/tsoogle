@@ -119,6 +119,7 @@ const canonizeType = (
       return canonizeFnType(
         type as KindToNodeMappings[SyntaxKind.ArrowFunction]
       );
+    // TODO: replace this flag logic with something recursive
     case SyntaxKind.TypeAliasDeclaration:
       const fnTypes = type.getChildrenOfKind(SyntaxKind.FunctionType);
       const tupleTypes = type.getChildrenOfKind(SyntaxKind.TupleType);

@@ -5,6 +5,7 @@ import {
   KindToNodeMappings,
   Node,
   SyntaxKind,
+  TupleTypeNode,
   TypeAliasDeclaration,
   TypeFormatFlags,
 } from "ts-morph";
@@ -23,6 +24,14 @@ const getNthParameterName = (n: number, depth: number): string => {
 
 const removeWhiteSpace = (s: string): string => s.replaceAll(/\s/g, "");
 
+const renderWithoutWhitespace = (n: Node): string =>
+  removeWhiteSpace(
+    n
+      .getChildren()
+      .map((it) => it.getText())
+      .join("")
+  );
+
 const getTypeText = (node: Node): string =>
   typeChecker.getTypeText(
     node.getType(),
@@ -34,7 +43,7 @@ const getTypeText = (node: Node): string =>
 
 type FnType = FunctionTypeNode | ArrowFunction;
 
-const canonizeFnTypeName = (fnType: FnType): string => {
+const canonizeFnType = (fnType: FnType): string => {
   const inner = (scope: FnType, depth = 0): void => {
     const parameters = scope.getParameters();
     parameters.forEach((param, i): void => {
@@ -61,36 +70,56 @@ const canonizeFnTypeName = (fnType: FnType): string => {
     return removeWhiteSpace(getTypeText(fnType));
   }
 
-  return removeWhiteSpace(
-    fnType
-      .getChildren()
-      .map((it) => it.getText())
-      .join("")
-  );
+  return renderWithoutWhitespace(fnType);
 };
 
-const canonizeTypeName = (
+const canonizeTupleType = (tupleType: TupleTypeNode): string => {
+  const members = tupleType.getElements();
+
+  members.forEach((member) => {
+    const kind = member.getKind();
+    if (kind === SyntaxKind.NamedTupleMember) {
+      const namedTupleMember = member.asKindOrThrow(kind);
+      const name = namedTupleMember.getName();
+      const existingText = removeWhiteSpace(namedTupleMember.getText());
+      namedTupleMember.replaceWithText(existingText.replace(`${name}:`, ""));
+    }
+  });
+
+  return renderWithoutWhitespace(tupleType);
+};
+
+const canonizeType = (
   type: FunctionTypeNode | ArrowFunction | TypeAliasDeclaration
 ): string => {
   const kind = type.getKind();
 
   switch (kind) {
     case SyntaxKind.FunctionType:
-      return canonizeFnTypeName(
+      return canonizeFnType(
         type as KindToNodeMappings[SyntaxKind.FunctionType]
       );
     case SyntaxKind.ArrowFunction:
-      return canonizeFnTypeName(
+      return canonizeFnType(
         type as KindToNodeMappings[SyntaxKind.ArrowFunction]
       );
     case SyntaxKind.TypeAliasDeclaration:
-      // console.log(type.getChildren().map((it) => it.getKindName()));
-      // console.log(type.getText());
-      const fnType = type.getChildrenOfKind(SyntaxKind.FunctionType)[0];
-      return canonizeFnTypeName(fnType);
+      const fnTypes = type.getChildrenOfKind(SyntaxKind.FunctionType);
+      const tupleTypes = type.getChildrenOfKind(SyntaxKind.TupleType);
+
+      if (fnTypes.length > 0) {
+        return canonizeFnType(fnTypes[0]);
+      }
+
+      if (tupleTypes.length > 0) {
+        return canonizeTupleType(tupleTypes[0]);
+      }
+
+      throw new Error(`Unable to handle node of kind ${type.getKindName()}`);
+
     default:
       return removeWhiteSpace(getTypeText(type));
   }
 };
 
-export default canonizeTypeName;
+export default canonizeType;

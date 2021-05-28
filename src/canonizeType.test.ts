@@ -43,6 +43,14 @@ const namedTupleType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NamedTupleType"
 );
+const unnamedNestedTupleType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "UnnamedNestedTupleType"
+);
+const nestedNamedTupleType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "NestedNamedTupleType"
+);
 
 describe("canonizeTypeName", () => {
   describe("function types", () => {
@@ -72,6 +80,18 @@ describe("canonizeTypeName", () => {
 
     it("should canonize named tuple types as unnamed tuple types", () => {
       expect(canonizeType(namedTupleType)).toBe("[string,number]");
+    });
+
+    it("should canonize unnamed nested tuple types", () => {
+      expect(canonizeType(unnamedNestedTupleType)).toBe(
+        "[string,[number,string[]]]"
+      );
+    });
+
+    it("should canonize nested named tuple types", () => {
+      expect(canonizeType(nestedNamedTupleType)).toBe(
+        "[string,[number,string[]]]"
+      );
     });
   });
 });

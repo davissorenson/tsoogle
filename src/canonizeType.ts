@@ -3,6 +3,7 @@ import {
   ArrowFunction,
   FunctionTypeNode,
   KindToNodeMappings,
+  NamedTupleMember,
   Node,
   SyntaxKind,
   TupleTypeNode,
@@ -10,6 +11,7 @@ import {
   TypeFormatFlags,
 } from "ts-morph";
 import { typeChecker } from "./project";
+import { getChildOfKind } from "./utils/getChildOfKind";
 
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -74,16 +76,30 @@ const canonizeFnType = (fnType: FnType): string => {
 };
 
 const canonizeTupleType = (tupleType: TupleTypeNode): string => {
-  const members = tupleType.getElements();
+  const namedTupleStack: NamedTupleMember[] = [];
 
-  members.forEach((member) => {
-    const kind = member.getKind();
-    if (kind === SyntaxKind.NamedTupleMember) {
-      const namedTupleMember = member.asKindOrThrow(kind);
-      const name = namedTupleMember.getName();
-      const existingText = removeWhiteSpace(namedTupleMember.getText());
-      namedTupleMember.replaceWithText(existingText.replace(`${name}:`, ""));
-    }
+  const inner = (scope: TupleTypeNode): void => {
+    const members = scope.getElements();
+    members.forEach((member) => {
+      const kind = member.getKind();
+      if (kind === SyntaxKind.NamedTupleMember) {
+        namedTupleStack.push(member.asKindOrThrow(kind));
+      }
+
+      const nestedTuple = getChildOfKind(member, SyntaxKind.TupleType);
+
+      if (nestedTuple) {
+        inner(nestedTuple);
+      }
+    });
+  };
+
+  inner(tupleType);
+
+  namedTupleStack.reverse().forEach((namedTuple) => {
+    const name = namedTuple.getName();
+    const existingText = removeWhiteSpace(namedTuple.getText());
+    namedTuple.replaceWithText(existingText.replace(`${name}:`, ""));
   });
 
   return renderWithoutWhitespace(tupleType);

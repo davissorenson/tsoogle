@@ -1,4 +1,4 @@
-import { ExportedDeclarations, SyntaxKind, KindToNodeMappings } from "ts-morph";
+import { ExportedDeclarations, KindToNodeMappings, SyntaxKind } from "ts-morph";
 
 type DeclarationsByKind = Map<SyntaxKind, KindToNodeMappings[SyntaxKind][]>;
 

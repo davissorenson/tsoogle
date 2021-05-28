@@ -1,4 +1,3 @@
-import { assert } from "console";
 import {
   ArrowFunction,
   FunctionTypeNode,
@@ -16,7 +15,7 @@ import { getChildOfKind } from "./utils/getChildOfKind";
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const getNthParameterName = (n: number, depth: number): string => {
-  assert(
+  console.assert(
     n < PARAMETER_NAMES.length,
     `Ran out of variable names. Used all ${PARAMETER_NAMES.length} of them. :c`
   );

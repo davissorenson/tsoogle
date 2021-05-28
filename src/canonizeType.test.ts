@@ -6,11 +6,11 @@ import {
   loadTypeDeclarations,
 } from "./loaders/loadDeclarations";
 import { ArrowFnAndDeclaration } from "./types";
-import { getFnByName } from "./utils";
 import declarationsByKind, {
   getAllDeclarationsOfKind,
   getDeclarationByNameOrThrow,
 } from "./utils/declarationsByKind";
+import { getFnByName } from "./utils/getFnByName";
 
 const constDeclarations = loadConstDeclarations();
 const typeDeclarations = loadTypeDeclarations();

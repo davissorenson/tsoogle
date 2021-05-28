@@ -1,6 +1,6 @@
 import { ExportedDeclarations } from "ts-morph";
 import project from "../project";
-import { flattenMapValues } from "../utils";
+import flattenMapValues from "../utils/flattenMapValues";
 
 project.addSourceFileAtPath("tests/consts.ts");
 project.addSourceFileAtPath("tests/types.ts");

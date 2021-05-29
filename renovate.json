@@ -1,5 +1,11 @@
 {
-  "extends": [
-    "config:base"
-  ]
+  "extends": ["config:base", ":masterIssue"],
+  "timezone": "Europe/Helsinki",
+  "packageRules": [
+    {
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ],
+  "lockFileMaintenance": { "enabled": true }
 }

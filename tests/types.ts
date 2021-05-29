@@ -23,3 +23,24 @@ export type NestedNamedTupleType = [
   firstElement: string,
   secondElement: [firstNestedElement: number, secondNestedElement: string[]]
 ];
+
+export type ObjectType = {
+  bar: string;
+  foo: number[];
+};
+
+export type NonAlphabetizedObjectType = {
+  foo: number[];
+  bar: string;
+};
+
+export type NestedObjectType = {
+  foo: string;
+  bar: {
+    baz: number[];
+    qux: {
+      b: string[];
+      a: number;
+    };
+  };
+};

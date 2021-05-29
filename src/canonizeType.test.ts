@@ -51,6 +51,14 @@ const nestedNamedTupleType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedNamedTupleType"
 );
+const objectType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "ObjectType"
+);
+const nonAlphabetizedObjectType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "NonAlphabetizedObjectType"
+);
 
 describe("canonizeTypeName", () => {
   describe("function types", () => {
@@ -91,6 +99,18 @@ describe("canonizeTypeName", () => {
     it("should canonize nested named tuple types", () => {
       expect(canonizeType(nestedNamedTupleType)).toBe(
         "[string,[number,string[]]]"
+      );
+    });
+  });
+
+  describe("object types", () => {
+    it("should canonize an object type", () => {
+      expect(canonizeType(objectType)).toBe("{bar:string;foo:number[];}");
+    });
+
+    it("should alphabetize an object type's properties", () => {
+      expect(canonizeType(nonAlphabetizedObjectType)).toBe(
+        "{bar:string;foo:number[];}"
       );
     });
   });

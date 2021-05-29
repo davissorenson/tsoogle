@@ -1,3 +1,4 @@
+import R from "ramda";
 import {
   ArrowFunction,
   FunctionTypeNode,
@@ -8,6 +9,7 @@ import {
   TupleTypeNode,
   TypeAliasDeclaration,
   TypeFormatFlags,
+  TypeLiteralNode,
 } from "ts-morph";
 import { typeChecker } from "./project";
 import { getChildOfKind } from "./utils/getChildOfKind";
@@ -104,6 +106,20 @@ const canonizeTupleType = (tupleType: TupleTypeNode): string => {
   return renderWithoutWhitespace(tupleType);
 };
 
+const canonizeTypeLiteral = (typeLiteral: TypeLiteralNode): string => {
+  const propertiesUnsorted = typeLiteral.getProperties();
+  const propertiesSortedText = typeLiteral
+    .getProperties()
+    .sort((propA, propB) => propA.getName().localeCompare(propB.getName()))
+    .map((prop) => prop.getText());
+
+  R.zip(propertiesUnsorted, propertiesSortedText).forEach(
+    ([originalProp, newPropText]) => originalProp.replaceWithText(newPropText)
+  );
+
+  return renderWithoutWhitespace(typeLiteral);
+};
+
 const canonizeType = (
   type: FunctionTypeNode | ArrowFunction | TypeAliasDeclaration
 ): string => {
@@ -118,20 +134,29 @@ const canonizeType = (
       return canonizeFnType(
         type as KindToNodeMappings[SyntaxKind.ArrowFunction]
       );
-    // TODO: replace this flag logic with something recursive
+    // TODO: replace this flat logic with something recursive
     case SyntaxKind.TypeAliasDeclaration:
-      const fnTypes = type.getChildrenOfKind(SyntaxKind.FunctionType);
-      const tupleTypes = type.getChildrenOfKind(SyntaxKind.TupleType);
+      const fnType = getChildOfKind(type, SyntaxKind.FunctionType);
+      const tupleType = getChildOfKind(type, SyntaxKind.TupleType);
+      const typeLiteral = getChildOfKind(type, SyntaxKind.TypeLiteral);
 
-      if (fnTypes.length > 0) {
-        return canonizeFnType(fnTypes[0]);
+      if (fnType) {
+        return canonizeFnType(fnType);
       }
 
-      if (tupleTypes.length > 0) {
-        return canonizeTupleType(tupleTypes[0]);
+      if (tupleType) {
+        return canonizeTupleType(tupleType);
       }
 
-      throw new Error(`Unable to handle node of kind ${type.getKindName()}`);
+      if (typeLiteral) {
+        return canonizeTypeLiteral(typeLiteral);
+      }
+
+      throw new Error(
+        `Unable to handle node of kind ${type.getKindName()}. Children: ${type
+          .getChildren()
+          .map((it) => it.getKindName())}`
+      );
 
     default:
       return removeWhiteSpace(getTypeText(type));

@@ -37,10 +37,10 @@ export type NonAlphabetizedObjectType = {
 export type NestedObjectType = {
   foo: string;
   bar: {
-    baz: number[];
     qux: {
       b: string[];
       a: number;
     };
+    baz: number[];
   };
 };

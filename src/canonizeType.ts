@@ -5,6 +5,7 @@ import {
   KindToNodeMappings,
   NamedTupleMember,
   Node,
+  PropertySignature,
   SyntaxKind,
   TupleTypeNode,
   TypeAliasDeclaration,
@@ -107,14 +108,39 @@ const canonizeTupleType = (tupleType: TupleTypeNode): string => {
 };
 
 const canonizeTypeLiteral = (typeLiteral: TypeLiteralNode): string => {
-  const propertiesUnsorted = typeLiteral.getProperties();
-  const propertiesSortedText = typeLiteral
-    .getProperties()
-    .sort((propA, propB) => propA.getName().localeCompare(propB.getName()))
-    .map((prop) => prop.getText());
+  const typeLiteralStack: R.KeyValuePair<
+    PropertySignature,
+    PropertySignature
+  >[][] = [];
 
-  R.zip(propertiesUnsorted, propertiesSortedText).forEach(
-    ([originalProp, newPropText]) => originalProp.replaceWithText(newPropText)
+  const inner = (scope: TypeLiteralNode): void => {
+    const propertiesUnsorted = scope.getProperties();
+    const propertiesSorted = scope
+      .getProperties()
+      .sort((propA, propB) => propA.getName().localeCompare(propB.getName()));
+
+    typeLiteralStack.push(R.zip(propertiesUnsorted, propertiesSorted));
+
+    propertiesSorted.forEach((prop) => {
+      const nestedTypeLiteral = getChildOfKind(prop, SyntaxKind.TypeLiteral);
+
+      if (nestedTypeLiteral) {
+        inner(nestedTypeLiteral);
+      }
+    });
+  };
+
+  inner(typeLiteral);
+
+  // idea: rewrite type literal completely?
+
+  typeLiteralStack.reverse().forEach((originalPropAndSortedText) =>
+    originalPropAndSortedText.forEach(([originalProp, sortedProp]) => {
+      console.log(
+        `replacing node "${originalProp.getText()}" with text "${sortedProp.getText()}"`
+      );
+      originalProp.replaceWithText(sortedProp.getText());
+    })
   );
 
   return renderWithoutWhitespace(typeLiteral);

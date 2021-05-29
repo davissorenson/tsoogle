@@ -59,6 +59,10 @@ const nonAlphabetizedObjectType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NonAlphabetizedObjectType"
 );
+const nestedObjectType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "NestedObjectType"
+);
 
 describe("canonizeTypeName", () => {
   describe("function types", () => {
@@ -111,6 +115,12 @@ describe("canonizeTypeName", () => {
     it("should alphabetize an object type's properties", () => {
       expect(canonizeType(nonAlphabetizedObjectType)).toBe(
         "{bar:string;foo:number[];}"
+      );
+    });
+
+    it("should canonize nested object types", () => {
+      expect(canonizeType(nestedObjectType)).toBe(
+        "{bar:{baz:number[];qux:{a:number;b:string[];};};foo:string;}"
       );
     });
   });

@@ -38,13 +38,13 @@ const getNthTypeParameterName = (n: number, depth: number): string => {
 const removeWhiteSpace = (s: string): string => s.replaceAll(/\s/g, "");
 
 const renderWithoutWhitespace = (ns: Node[], depth: number): string =>
-  removeWhiteSpace(ns.map((it) => canonizeType(it, depth)).join(""));
+  removeWhiteSpace(ns.map((it) => canonizeTypeInternal(it, depth)).join(""));
 
 const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
   removeWhiteSpace(
     n
       .getChildren()
-      .map((it) => canonizeType(it, depth))
+      .map((it) => canonizeTypeInternal(it, depth))
       .join("")
   );
 
@@ -148,7 +148,7 @@ const conditionalRender = <T extends Node>(
 
 let typeParametersForDepth: Map<number, number>;
 
-const canonizeType = (node: Node, depth: number): string => {
+const canonizeTypeInternal = (node: Node, depth: number): string => {
   const kind = node.getKind();
 
   switch (kind) {
@@ -274,9 +274,9 @@ const canonizeType = (node: Node, depth: number): string => {
   }
 };
 
-const exportedCanonizeType = (type: Node): string => {
+const canonizeType = (type: Node): string => {
   typeParametersForDepth = new Map<number, number>([[0, 0]]);
-  return canonizeType(type, 0);
+  return canonizeTypeInternal(type, 0);
 };
 
-export default exportedCanonizeType;
+export default canonizeType;

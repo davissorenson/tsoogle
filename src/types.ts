@@ -21,5 +21,3 @@ export type FnDeclaration = {
 };
 
 export type Fn = FnDeclaration | ArrowFnAndDeclaration;
-
-export type FnIndex = Map<string, Fn[]>;

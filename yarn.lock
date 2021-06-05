@@ -580,27 +580,17 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@ts-morph/bootstrap@0.9.1":
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/@ts-morph/bootstrap/-/bootstrap-0.9.1.tgz#4761cac8d9e5c7d2d7cdb120f6dda027c2b831cd"
-  integrity sha512-u3F2vhLm48e6lZUIf9Gj41OXCzAr62avbWdlMZ9K1JCH//XuAgr2u3c+2usGOOIXBaP83LshBTzDgw/tb9tSzg==
+"@ts-morph/bootstrap@0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@ts-morph/bootstrap/-/bootstrap-0.10.0.tgz#71f86675e158cb8e2891b8d7b650e5789325d8c1"
+  integrity sha512-OWD45wxKeGM+aiUf/LweC7vvEirid2nSTfVVGK+vhXQkLmAXBFOQqHsXPHLcxvpZYAuGGLDONMcUcdv+4b/JYA==
   dependencies:
-    "@ts-morph/common" "~0.9.0"
+    "@ts-morph/common" "~0.10.0"
 
 "@ts-morph/common@~0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@ts-morph/common/-/common-0.10.0.tgz#d032ea6f6d4115b72fa50ad56009baebcc1e71b8"
   integrity sha512-6wC+CovwzxLP+bQZcqHJEbZ7ViaIfsid8VzsVjJRkdfCQ8C8K5mm1+9/wkgmn814BPATtgSgFuDmVJnIb8/leg==
-  dependencies:
-    fast-glob "^3.2.5"
-    minimatch "^3.0.4"
-    mkdirp "^1.0.4"
-    path-browserify "^1.0.1"
-
-"@ts-morph/common@~0.9.0":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@ts-morph/common/-/common-0.9.2.tgz#fc63ed4f8d3a45e4ed6849fe20a57f4f2baecc5d"
-  integrity sha512-IPyg+c3Am0EBoa63W0f/AKeLrJhvzMzQ4BIvD1baxLopmiHOj1HFTXYxC6e8iTZ+UYtN+/WFM9UyGRnoA20b8g==
   dependencies:
     fast-glob "^3.2.5"
     minimatch "^3.0.4"

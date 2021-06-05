@@ -50,3 +50,32 @@ export type FnTypeWithNamedTuple = (
   y: [p: number, q: string[]],
   z: number[]
 ) => [r: string[], s: number[]];
+
+export type FnTypeWithNestedNamedTuple = (
+  x: string,
+  y: [p: number, q: [t: string, u: number[]]],
+  z: number[]
+) => [r: string[], s: number[]];
+
+export type FnTypeWithNestedObjectType = (
+  y: {
+    foo: string;
+    bar: {
+      qux: {
+        b: string[];
+        a: number;
+      };
+      baz: number[];
+    };
+  },
+  x: string[]
+) => {
+  foo: string;
+  bar: {
+    qux: {
+      b: string[];
+      a: number;
+    };
+    baz: number[];
+  };
+};

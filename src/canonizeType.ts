@@ -185,14 +185,17 @@ const canonizeType = (type: Node, depth: number): string => {
 
     case SyntaxKind.OpenParenToken:
     case SyntaxKind.CloseParenToken:
-    case SyntaxKind.EqualsGreaterThanToken:
     case SyntaxKind.OpenBracketToken:
     case SyntaxKind.CloseBracketToken:
+    case SyntaxKind.OpenBraceToken:
+    case SyntaxKind.CloseBraceToken:
+    case SyntaxKind.EqualsGreaterThanToken:
     case SyntaxKind.CommaToken:
     case SyntaxKind.ArrayType:
     case SyntaxKind.ColonToken:
     case SyntaxKind.StringKeyword:
     case SyntaxKind.NumberKeyword:
+    case SyntaxKind.PropertySignature:
       return type.getText();
 
     default:

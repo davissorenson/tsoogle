@@ -5,14 +5,12 @@ import {
   Identifier,
   KindToNodeMappings,
   Node,
-  PropertySignature,
   SyntaxKind,
   SyntaxList,
   ts,
   TupleTypeNode,
   TypeLiteralNode,
 } from "ts-morph";
-import { getChildOfKind } from "./utils/getChildOfKind";
 
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -72,35 +70,22 @@ const canonizeTypeLiteral = (
   typeLiteral: TypeLiteralNode,
   depth: number
 ): string => {
-  const typeLiteralStack: R.KeyValuePair<
-    PropertySignature,
-    PropertySignature
-  >[][] = [];
+  const propertiesSorted = typeLiteral
+    .getProperties()
+    .sort((propA, propB) => propA.getName().localeCompare(propB.getName()))
+    .reverse()
+    .map((it) =>
+      ts.factory.createPropertySignature(
+        it.compilerNode.modifiers,
+        it.getName(),
+        it.getQuestionTokenNode()?.compilerNode,
+        it.getTypeNode()?.compilerNode
+      )
+    );
 
-  const inner = (scope: TypeLiteralNode): void => {
-    const propertiesUnsorted = scope.getProperties();
-    const propertiesSorted = scope
-      .getProperties()
-      .sort((propA, propB) => propA.getName().localeCompare(propB.getName()));
-
-    typeLiteralStack.push(R.zip(propertiesUnsorted, propertiesSorted));
-
-    propertiesSorted.forEach((prop) => {
-      const nestedTypeLiteral = getChildOfKind(prop, SyntaxKind.TypeLiteral);
-
-      if (nestedTypeLiteral) {
-        inner(nestedTypeLiteral);
-      }
-    });
-  };
-
-  inner(typeLiteral);
-
-  // idea: rewrite type literal completely?
-
-  typeLiteralStack.reverse().forEach((originalPropAndSortedText) =>
-    originalPropAndSortedText.forEach(([originalProp, sortedProp]) => {
-      originalProp.replaceWithText(sortedProp.getText());
+  typeLiteral.getProperties().map((it) =>
+    it.transform((traversal) => {
+      return propertiesSorted.pop() ?? traversal.currentNode;
     })
   );
 

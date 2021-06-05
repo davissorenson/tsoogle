@@ -104,7 +104,7 @@ const canonizeTypeLiteral = (
     })
   );
 
-  return renderChildrenWithoutWhitespace(typeLiteral, depth + 1);
+  return renderChildrenWithoutWhitespace(typeLiteral, depth);
 };
 
 const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
@@ -113,7 +113,7 @@ const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
     .getChildren()
     .filter((it) => !typesExcludedFromRendering.includes(it.getKind()));
 
-  return renderWithoutWhitespace(filteredChildren, depth + 1);
+  return renderWithoutWhitespace(filteredChildren, depth);
 };
 
 const renderIdentifier = (identifier: Identifier): string => {
@@ -159,10 +159,7 @@ const canonizeType = (type: Node, depth: number): string => {
       );
 
     case SyntaxKind.TypeAliasDeclaration:
-      return R.join(
-        "",
-        type.getChildren().map((it) => canonizeType(it, depth + 0))
-      );
+      return renderChildrenWithoutWhitespace(type, depth);
 
     case SyntaxKind.SyntaxList:
       return canonizeSyntaxList(
@@ -196,6 +193,9 @@ const canonizeType = (type: Node, depth: number): string => {
     case SyntaxKind.StringKeyword:
     case SyntaxKind.NumberKeyword:
     case SyntaxKind.PropertySignature:
+    case SyntaxKind.Block:
+    case SyntaxKind.VoidKeyword:
+    case SyntaxKind.NeverKeyword:
       return type.getText();
 
     default:

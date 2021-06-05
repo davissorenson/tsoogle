@@ -63,6 +63,10 @@ const nestedObjectType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedObjectType"
 );
+const fnTypeWithNamedTuple = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnTypeWithNamedTuple"
+);
 
 describe("canonizeTypeName", () => {
   describe("function types", () => {
@@ -121,6 +125,14 @@ describe("canonizeTypeName", () => {
     it("should canonize nested object types", () => {
       expect(canonizeType(nestedObjectType)).toBe(
         "{bar:{baz:number[];qux:{a:number;b:string[];};};foo:string;}"
+      );
+    });
+  });
+
+  describe("mixed types", () => {
+    it("should anonymize a named tuple within a function type", () => {
+      expect(canonizeType(fnTypeWithNamedTuple)).toBe(
+        "(a0:string,b0:[number,string[]],c0:number[])=>[string[],number[]]"
       );
     });
   });

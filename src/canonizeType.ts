@@ -52,16 +52,11 @@ const canonizeFnType = (fnType: FnType): string => {
     const parameters = scope.getParameters();
     parameters.forEach((param, i): void => {
       param.rename(getNthParameterName(i, depth));
-      const fnChildren = param.getChildrenOfKind(SyntaxKind.FunctionType);
 
-      if (fnChildren.length === 1) {
-        inner(fnChildren[0], depth + 1);
-      }
+      const fnChild = getChildOfKind(param, SyntaxKind.FunctionType);
 
-      if (fnChildren.length > 1) {
-        throw new Error(
-          `What's going on here? fnChildren has length ${fnChildren.length}`
-        );
+      if (fnChild) {
+        inner(fnChild, depth + 1);
       }
     });
   };

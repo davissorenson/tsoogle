@@ -44,3 +44,9 @@ export type NestedObjectType = {
     baz: number[];
   };
 };
+
+export type FnTypeWithNamedTuple = (
+  x: string,
+  y: [p: number, q: string[]],
+  z: number[]
+) => [r: string[], s: number[]];

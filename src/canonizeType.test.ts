@@ -35,6 +35,14 @@ const nestedFnType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedFnType"
 );
+const fnWithTypeParameter = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnWithTypeParameter"
+);
+const fnWithMultipleTypeParameters = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnWithMultipleTypeParameters"
+);
 const unnamedTupleType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "UnnamedTupleType"
@@ -94,6 +102,18 @@ describe("canonizeTypeName", () => {
       expect(canonizeType(nestedFnType)).toBe(
         "(a0:string,b0:(a1:number,b1:(a2:number,b2:string)=>void)=>number[])=>never"
       );
+    });
+
+    describe("functions with type parameters", () => {
+      it("should canonize functions with one type parameter", () => {
+        expect(canonizeType(fnWithTypeParameter)).toBe("<A0>(a0:A0)=>A0");
+      });
+
+      it("should canonize functions with multiple type parameters", () => {
+        expect(canonizeType(fnWithMultipleTypeParameters)).toBe(
+          "<A0,B0,C0>(a0:A0,b0:B0)=>C0[]"
+        );
+      });
     });
   });
 

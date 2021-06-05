@@ -13,6 +13,13 @@ export type NestedFnType = (
   q: (a: number, b: (r: number, s: string) => void) => number[]
 ) => never;
 
+export type FnWithTypeParameter = <T>(something: T) => T;
+
+export type FnWithMultipleTypeParameters = <T, U, V>(
+  something: T,
+  anotherThing: U
+) => V[];
+
 export type UnnamedTupleType = [string, number];
 
 export type UnnamedNestedTupleType = [string, [number, string[]]];

@@ -11,9 +11,11 @@ import {
   ts,
   TupleTypeNode,
   TypeLiteralNode,
+  TypeParameterDeclaration,
 } from "ts-morph";
 
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const TYPE_PARAMETER_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 const getNthParameterName = (n: number, depth: number): string => {
   console.assert(
@@ -22,6 +24,15 @@ const getNthParameterName = (n: number, depth: number): string => {
   );
 
   return `${PARAMETER_NAMES[n]}${depth}`;
+};
+
+const getNthTypeParameterName = (n: number, depth: number): string => {
+  console.assert(
+    n < TYPE_PARAMETER_NAMES.length,
+    `Ran out of type parameter names. Used all ${TYPE_PARAMETER_NAMES.length} of them. :c`
+  );
+
+  return `${TYPE_PARAMETER_NAMES[n]}${depth}`;
 };
 
 const removeWhiteSpace = (s: string): string => s.replaceAll(/\s/g, "");
@@ -39,15 +50,25 @@ const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
 
 type FnType = FunctionTypeNode | ArrowFunction;
 
-const fnTypeIsFunctionTypeNode = (fnType: FnType): fnType is FunctionTypeNode =>
-  fnType.getKind() === SyntaxKind.FunctionType;
-
 const canonizeFnType = (fnType: FnType, depth: number): string => {
   fnType.getParameters().forEach((param, i): void => {
     param.rename(getNthParameterName(i, depth));
   });
 
   return renderChildrenWithoutWhitespace(fnType, depth + 1);
+};
+
+const canonizeTypeParameter = (
+  typeParameter: TypeParameterDeclaration,
+  depth: number
+): string => {
+  const nTypeParametersForDepth = typeParametersForDepth.get(depth - 1) ?? 0;
+  typeParameter.rename(
+    getNthTypeParameterName(nTypeParametersForDepth, depth - 1)
+  );
+  typeParametersForDepth.set(depth - 1, nTypeParametersForDepth + 1);
+
+  return renderChildrenWithoutWhitespace(typeParameter, depth);
 };
 
 const canonizeTupleType = (tupleType: TupleTypeNode, depth: number): string => {
@@ -169,6 +190,8 @@ const renderColonToken = (colonToken: Node<ts.Node>): string => {
   return colonToken.getText();
 };
 
+let typeParametersForDepth: Map<number, number>;
+
 const canonizeType = (node: Node, depth: number): string => {
   const kind = node.getKind();
 
@@ -182,6 +205,12 @@ const canonizeType = (node: Node, depth: number): string => {
     case SyntaxKind.ArrowFunction:
       return canonizeFnType(
         node as KindToNodeMappings[SyntaxKind.ArrowFunction],
+        depth
+      );
+
+    case SyntaxKind.TypeParameter:
+      return canonizeTypeParameter(
+        node as KindToNodeMappings[SyntaxKind.TypeParameter],
         depth
       );
 
@@ -242,12 +271,15 @@ const canonizeType = (node: Node, depth: number): string => {
     case SyntaxKind.CloseBracketToken:
     case SyntaxKind.OpenBraceToken:
     case SyntaxKind.CloseBraceToken:
+    case SyntaxKind.LessThanToken:
+    case SyntaxKind.GreaterThanToken:
     case SyntaxKind.CommaToken:
     case SyntaxKind.ArrayType:
     case SyntaxKind.StringKeyword:
     case SyntaxKind.NumberKeyword:
     case SyntaxKind.VoidKeyword:
     case SyntaxKind.NeverKeyword:
+    case SyntaxKind.TypeReference:
       return node.getText();
 
     default:
@@ -256,6 +288,9 @@ const canonizeType = (node: Node, depth: number): string => {
   }
 };
 
-const exportedCanonizeType = (type: Node): string => canonizeType(type, 0);
+const exportedCanonizeType = (type: Node): string => {
+  typeParametersForDepth = new Map<number, number>([[0, 0]]);
+  return canonizeType(type, 0);
+};
 
 export default exportedCanonizeType;

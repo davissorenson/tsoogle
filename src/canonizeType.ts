@@ -39,10 +39,11 @@ const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
 
 type FnType = FunctionTypeNode | ArrowFunction;
 
-const canonizeFnType = (fnType: FnType, depth: number): string => {
-  const parameters = fnType.getParameters();
+const fnTypeIsFunctionTypeNode = (fnType: FnType): fnType is FunctionTypeNode =>
+  fnType.getKind() === SyntaxKind.FunctionType;
 
-  parameters.forEach((param, i): void => {
+const canonizeFnType = (fnType: FnType, depth: number): string => {
+  fnType.getParameters().forEach((param, i): void => {
     param.rename(getNthParameterName(i, depth));
   });
 
@@ -139,64 +140,100 @@ const renderSemicolon = (
   return "";
 };
 
-const canonizeType = (type: Node, depth: number): string => {
-  const kind = type.getKind();
+const renderEqualsGreaterThanToken = (
+  equalsGreaterThan: Node<ts.Node>
+): string => {
+  const typesExcludedFromRendering = [SyntaxKind.ArrowFunction];
+  const parentsTypes = equalsGreaterThan
+    .getAncestors()
+    .map((it) => it.getKind());
+
+  if (R.intersection(typesExcludedFromRendering, parentsTypes).length > 0) {
+    return "";
+  }
+
+  return equalsGreaterThan.getText();
+};
+
+const renderColonToken = (colonToken: Node<ts.Node>): string => {
+  const typesExcludedFromRendering = [
+    SyntaxKind.Parameter,
+    SyntaxKind.PropertySignature,
+  ];
+  const parentsTypes = colonToken.getAncestors().map((it) => it.getKind());
+
+  if (R.intersection(typesExcludedFromRendering, parentsTypes).length === 0) {
+    return "=>";
+  }
+
+  return colonToken.getText();
+};
+
+const canonizeType = (node: Node, depth: number): string => {
+  const kind = node.getKind();
 
   switch (kind) {
     case SyntaxKind.FunctionType:
       return canonizeFnType(
-        type as KindToNodeMappings[SyntaxKind.FunctionType],
+        node as KindToNodeMappings[SyntaxKind.FunctionType],
         depth
       );
 
     case SyntaxKind.ArrowFunction:
       return canonizeFnType(
-        type as KindToNodeMappings[SyntaxKind.ArrowFunction],
+        node as KindToNodeMappings[SyntaxKind.ArrowFunction],
         depth
       );
 
     case SyntaxKind.TupleType:
       return canonizeTupleType(
-        type as KindToNodeMappings[SyntaxKind.TupleType],
+        node as KindToNodeMappings[SyntaxKind.TupleType],
         depth
       );
 
     case SyntaxKind.TypeLiteral:
       return canonizeTypeLiteral(
-        type as KindToNodeMappings[SyntaxKind.TypeLiteral],
+        node as KindToNodeMappings[SyntaxKind.TypeLiteral],
         depth
       );
 
     case SyntaxKind.PropertySignature:
       return canonizePropertySignature(
-        type as KindToNodeMappings[SyntaxKind.PropertySignature],
+        node as KindToNodeMappings[SyntaxKind.PropertySignature],
         depth
       );
 
     case SyntaxKind.TypeAliasDeclaration:
-      return renderChildrenWithoutWhitespace(type, depth);
+      return renderChildrenWithoutWhitespace(node, depth);
 
     case SyntaxKind.SyntaxList:
       return canonizeSyntaxList(
-        type as KindToNodeMappings[SyntaxKind.SyntaxList],
+        node as KindToNodeMappings[SyntaxKind.SyntaxList],
         depth
       );
 
     case SyntaxKind.Parameter:
-      return renderChildrenWithoutWhitespace(type, depth);
+      return renderChildrenWithoutWhitespace(node, depth);
 
     case SyntaxKind.Identifier:
       return renderIdentifier(
-        type as KindToNodeMappings[SyntaxKind.Identifier]
+        node as KindToNodeMappings[SyntaxKind.Identifier]
       );
 
     case SyntaxKind.SemicolonToken:
       return renderSemicolon(
-        type as KindToNodeMappings[SyntaxKind.SemicolonToken]
+        node as KindToNodeMappings[SyntaxKind.SemicolonToken]
       );
+
+    case SyntaxKind.EqualsGreaterThanToken:
+      return renderEqualsGreaterThanToken(node);
+
+    case SyntaxKind.ColonToken:
+      return renderColonToken(node);
 
     case SyntaxKind.TypeKeyword:
     case SyntaxKind.EqualsToken:
+    case SyntaxKind.Block:
       return "";
 
     case SyntaxKind.OpenParenToken:
@@ -205,19 +242,16 @@ const canonizeType = (type: Node, depth: number): string => {
     case SyntaxKind.CloseBracketToken:
     case SyntaxKind.OpenBraceToken:
     case SyntaxKind.CloseBraceToken:
-    case SyntaxKind.EqualsGreaterThanToken:
     case SyntaxKind.CommaToken:
     case SyntaxKind.ArrayType:
-    case SyntaxKind.ColonToken:
     case SyntaxKind.StringKeyword:
     case SyntaxKind.NumberKeyword:
-    case SyntaxKind.Block:
     case SyntaxKind.VoidKeyword:
     case SyntaxKind.NeverKeyword:
-      return type.getText();
+      return node.getText();
 
     default:
-      throw new Error(`Unable to handle node of kind ${type.getKindName()}.`);
+      throw new Error(`Unable to handle node of kind ${node.getKindName()}.`);
     // return removeWhiteSpace(getTypeText(type));
   }
 };

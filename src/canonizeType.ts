@@ -5,6 +5,7 @@ import {
   Identifier,
   KindToNodeMappings,
   Node,
+  PropertySignature,
   SyntaxKind,
   SyntaxList,
   ts,
@@ -92,6 +93,13 @@ const canonizeTypeLiteral = (
   return renderChildrenWithoutWhitespace(typeLiteral, depth);
 };
 
+const canonizePropertySignature = (
+  propertySignature: PropertySignature,
+  depth: number
+): string => {
+  return renderChildrenWithoutWhitespace(propertySignature, depth);
+};
+
 const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
   const typesExcludedFromRendering = [SyntaxKind.ExportKeyword];
   const filteredChildren = syntaxList
@@ -101,15 +109,31 @@ const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
   return renderWithoutWhitespace(filteredChildren, depth);
 };
 
+// TODO: make generic version of below functions
+
 const renderIdentifier = (identifier: Identifier): string => {
   const typesIncludedInRendering = [
     SyntaxKind.Parameter,
     SyntaxKind.FunctionType,
+    SyntaxKind.PropertySignature,
   ];
   const parentsTypes = identifier.getAncestors().map((it) => it.getKind());
 
   if (R.intersection(typesIncludedInRendering, parentsTypes).length > 0) {
     return identifier.getText();
+  }
+
+  return "";
+};
+
+const renderSemicolon = (
+  semicolon: Node<ts.Token<SyntaxKind.SemicolonToken>>
+): string => {
+  const typesIncludedInRendering = [SyntaxKind.PropertySignature];
+  const parentsTypes = semicolon.getAncestors().map((it) => it.getKind());
+
+  if (R.intersection(typesIncludedInRendering, parentsTypes).length > 0) {
+    return semicolon.getText();
   }
 
   return "";
@@ -143,6 +167,12 @@ const canonizeType = (type: Node, depth: number): string => {
         depth
       );
 
+    case SyntaxKind.PropertySignature:
+      return canonizePropertySignature(
+        type as KindToNodeMappings[SyntaxKind.PropertySignature],
+        depth
+      );
+
     case SyntaxKind.TypeAliasDeclaration:
       return renderChildrenWithoutWhitespace(type, depth);
 
@@ -161,6 +191,10 @@ const canonizeType = (type: Node, depth: number): string => {
       );
 
     case SyntaxKind.SemicolonToken:
+      return renderSemicolon(
+        type as KindToNodeMappings[SyntaxKind.SemicolonToken]
+      );
+
     case SyntaxKind.TypeKeyword:
     case SyntaxKind.EqualsToken:
       return "";
@@ -177,7 +211,6 @@ const canonizeType = (type: Node, depth: number): string => {
     case SyntaxKind.ColonToken:
     case SyntaxKind.StringKeyword:
     case SyntaxKind.NumberKeyword:
-    case SyntaxKind.PropertySignature:
     case SyntaxKind.Block:
     case SyntaxKind.VoidKeyword:
     case SyntaxKind.NeverKeyword:

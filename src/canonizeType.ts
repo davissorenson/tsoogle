@@ -2,7 +2,6 @@ import R from "ramda";
 import {
   ArrowFunction,
   FunctionTypeNode,
-  Identifier,
   KindToNodeMappings,
   Node,
   PropertySignature,
@@ -131,63 +130,19 @@ const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
   return renderWithoutWhitespace(filteredChildren, depth);
 };
 
-// TODO: make generic version of below functions
-
-const renderIdentifier = (identifier: Identifier): string => {
-  const typesIncludedInRendering = [
-    SyntaxKind.Parameter,
-    SyntaxKind.FunctionType,
-    SyntaxKind.PropertySignature,
-  ];
-  const parentsTypes = identifier.getAncestors().map((it) => it.getKind());
-
-  if (R.intersection(typesIncludedInRendering, parentsTypes).length > 0) {
-    return identifier.getText();
-  }
-
-  return "";
-};
-
-const renderSemicolon = (
-  semicolon: Node<ts.Token<SyntaxKind.SemicolonToken>>
+const conditionalRender = <T extends Node>(
+  node: T,
+  intersectionCondition: (
+    intersection: (kinds: SyntaxKind[]) => number
+  ) => boolean,
+  ifTrueRender: string,
+  elseRender: string
 ): string => {
-  const typesIncludedInRendering = [SyntaxKind.PropertySignature];
-  const parentsTypes = semicolon.getAncestors().map((it) => it.getKind());
+  const parentsKinds = node.getAncestors().map((it) => it.getKind());
 
-  if (R.intersection(typesIncludedInRendering, parentsTypes).length > 0) {
-    return semicolon.getText();
-  }
-
-  return "";
-};
-
-const renderEqualsGreaterThanToken = (
-  equalsGreaterThan: Node<ts.Node>
-): string => {
-  const typesExcludedFromRendering = [SyntaxKind.ArrowFunction];
-  const parentsTypes = equalsGreaterThan
-    .getAncestors()
-    .map((it) => it.getKind());
-
-  if (R.intersection(typesExcludedFromRendering, parentsTypes).length > 0) {
-    return "";
-  }
-
-  return equalsGreaterThan.getText();
-};
-
-const renderColonToken = (colonToken: Node<ts.Node>): string => {
-  const typesExcludedFromRendering = [
-    SyntaxKind.Parameter,
-    SyntaxKind.PropertySignature,
-  ];
-  const parentsTypes = colonToken.getAncestors().map((it) => it.getKind());
-
-  if (R.intersection(typesExcludedFromRendering, parentsTypes).length === 0) {
-    return "=>";
-  }
-
-  return colonToken.getText();
+  return intersectionCondition(R.pipe(R.intersection(parentsKinds), R.length))
+    ? ifTrueRender
+    : elseRender;
 };
 
 let typeParametersForDepth: Map<number, number>;
@@ -245,20 +200,43 @@ const canonizeType = (node: Node, depth: number): string => {
       return renderChildrenWithoutWhitespace(node, depth);
 
     case SyntaxKind.Identifier:
-      return renderIdentifier(
-        node as KindToNodeMappings[SyntaxKind.Identifier]
+      return conditionalRender(
+        node,
+        (intersection) =>
+          intersection([
+            SyntaxKind.Parameter,
+            SyntaxKind.FunctionType,
+            SyntaxKind.PropertySignature,
+          ]) > 0,
+        node.getText(),
+        ""
       );
 
     case SyntaxKind.SemicolonToken:
-      return renderSemicolon(
-        node as KindToNodeMappings[SyntaxKind.SemicolonToken]
+      return conditionalRender(
+        node,
+        (intersection) => intersection([SyntaxKind.PropertySignature]) > 0,
+        node.getText(),
+        ""
       );
 
     case SyntaxKind.EqualsGreaterThanToken:
-      return renderEqualsGreaterThanToken(node);
+      return conditionalRender(
+        node,
+        (intersection) => intersection([SyntaxKind.ArrowFunction]) > 0,
+        "",
+        node.getText()
+      );
 
     case SyntaxKind.ColonToken:
-      return renderColonToken(node);
+      return conditionalRender(
+        node,
+        (intersection) =>
+          intersection([SyntaxKind.Parameter, SyntaxKind.PropertySignature]) ===
+          0,
+        "=>",
+        node.getText()
+      );
 
     case SyntaxKind.TypeKeyword:
     case SyntaxKind.EqualsToken:

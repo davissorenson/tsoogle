@@ -21,6 +21,18 @@ describe("canonizeTypeName", () => {
       );
     });
 
+    it("should work with exported function declarations", () => {
+      expect(canonizeType(testDeclarations.function1A)).toBe(
+        "(a0:number,b0:string)=>string[]"
+      );
+    });
+
+    it("should not use import types for function parameter types", () => {
+      expect(canonizeType(testDeclarations.function2A)).toBe(
+        "(a0:SomeImportedType,b0:AnotherImportedType)=>void"
+      );
+    });
+
     describe("functions with type parameters", () => {
       it("should canonize functions with one type parameter", () => {
         expect(canonizeType(testDeclarations.fnWithTypeParameter)).toBe(

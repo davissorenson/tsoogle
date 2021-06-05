@@ -1,6 +1,7 @@
 import R from "ramda";
 import {
   ArrowFunction,
+  FunctionDeclaration,
   FunctionTypeNode,
   KindToNodeMappings,
   Node,
@@ -47,7 +48,7 @@ const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
       .join("")
   );
 
-type FnType = FunctionTypeNode | ArrowFunction;
+type FnType = FunctionTypeNode | ArrowFunction | FunctionDeclaration;
 
 const canonizeFnType = (fnType: FnType, depth: number): string => {
   fnType.getParameters().forEach((param, i): void => {
@@ -151,6 +152,12 @@ const canonizeType = (node: Node, depth: number): string => {
   const kind = node.getKind();
 
   switch (kind) {
+    case SyntaxKind.FunctionDeclaration:
+      return canonizeFnType(
+        node as KindToNodeMappings[SyntaxKind.FunctionDeclaration],
+        depth
+      );
+
     case SyntaxKind.FunctionType:
       return canonizeFnType(
         node as KindToNodeMappings[SyntaxKind.FunctionType],
@@ -238,6 +245,7 @@ const canonizeType = (node: Node, depth: number): string => {
         node.getText()
       );
 
+    case SyntaxKind.FunctionKeyword:
     case SyntaxKind.TypeKeyword:
     case SyntaxKind.EqualsToken:
     case SyntaxKind.Block:

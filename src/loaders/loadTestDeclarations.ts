@@ -8,12 +8,15 @@ import declarationsByKind, {
 import { getFnByName } from "../utils/getFnByName";
 import {
   loadConstDeclarations,
+  loadFunctionDeclarations,
   loadTypeDeclarations,
 } from "./loadDeclarations";
 
-const constDeclarations = loadConstDeclarations();
-const typeDeclarations = loadTypeDeclarations();
-const fns = declarationsToFns(constDeclarations);
+const constDeclarationsFile = loadConstDeclarations();
+const typeDeclarationsFile = loadTypeDeclarations();
+const functionDeclarationsFile = loadFunctionDeclarations();
+
+const fns = declarationsToFns(constDeclarationsFile);
 const someFunction1A = getFnByName(
   fns,
   "someFunction1A"
@@ -22,14 +25,22 @@ const someFunction1B = getFnByName(
   fns,
   "someFunction1B"
 ) as ArrowFnAndDeclaration;
-const typeDeclarationsByKind = declarationsByKind(typeDeclarations);
+const typeDeclarationsByKind = declarationsByKind(typeDeclarationsFile);
 const typeAliasDeclarations = getAllDeclarationsOfKind(
   typeDeclarationsByKind,
   SyntaxKind.TypeAliasDeclaration
 );
 
+const functionDeclarationsByKind = declarationsByKind(functionDeclarationsFile);
+const functionDeclarations = getAllDeclarationsOfKind(
+  functionDeclarationsByKind,
+  SyntaxKind.FunctionDeclaration
+);
+
+// functions
 export const someFunction1AFnType = someFunction1A.arrowFn;
 export const someFunction1BFnType = someFunction1B.arrowFn;
+
 export const nestedFnType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedFnType"
@@ -42,6 +53,16 @@ export const fnWithMultipleTypeParameters = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "FnWithMultipleTypeParameters"
 );
+export const function1A = getDeclarationByNameOrThrow(
+  functionDeclarations,
+  "function1A"
+);
+export const function2A = getDeclarationByNameOrThrow(
+  functionDeclarations,
+  "function2A"
+);
+
+// tuples
 export const unnamedTupleType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "UnnamedTupleType"
@@ -58,6 +79,8 @@ export const nestedNamedTupleType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedNamedTupleType"
 );
+
+// object types a.k.a. type literals
 export const objectType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "ObjectType"

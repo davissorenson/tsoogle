@@ -10,15 +10,19 @@ export const getAllDeclarationsOfKind = <TKind extends SyntaxKind>(
 
 export const getDeclarationByName = <
   TKind extends SyntaxKind,
-  NKind extends KindToNodeMappings[TKind] & { getName: () => string }
+  NKind extends KindToNodeMappings[TKind] & {
+    getName: () => string | undefined;
+  }
 >(
   declarations: NKind[],
   name: string
-): NKind | undefined => declarations.filter((it) => it.getName() === name)[0];
+): NKind | undefined => declarations.filter((it) => it.getName()! === name)[0];
 
 export const getDeclarationByNameOrThrow = <
   TKind extends SyntaxKind,
-  NKind extends KindToNodeMappings[TKind] & { getName: () => string }
+  NKind extends KindToNodeMappings[TKind] & {
+    getName: () => string | undefined;
+  }
 >(
   declarations: NKind[],
   name: string

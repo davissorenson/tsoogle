@@ -47,7 +47,7 @@ const canonizeFnType = (fnType: FnType, depth: number): string => {
     param.rename(getNthParameterName(i, depth));
   });
 
-  return renderChildrenWithoutWhitespace(fnType, depth);
+  return renderChildrenWithoutWhitespace(fnType, depth + 1);
 };
 
 const canonizeTupleType = (tupleType: TupleTypeNode, depth: number): string => {
@@ -55,17 +55,17 @@ const canonizeTupleType = (tupleType: TupleTypeNode, depth: number): string => {
 
   members.map((it) =>
     it.transform((traversal) => {
-      const node = traversal.visitChildren();
+      const { currentNode } = traversal;
 
-      if (ts.isNamedTupleMember(node)) {
-        return node.type;
+      if (ts.isNamedTupleMember(currentNode)) {
+        return currentNode.type;
       }
 
-      return node;
+      return currentNode;
     })
   );
 
-  return renderChildrenWithoutWhitespace(tupleType, depth);
+  return renderChildrenWithoutWhitespace(tupleType, depth + 1);
 };
 
 const canonizeTypeLiteral = (
@@ -100,14 +100,11 @@ const canonizeTypeLiteral = (
 
   typeLiteralStack.reverse().forEach((originalPropAndSortedText) =>
     originalPropAndSortedText.forEach(([originalProp, sortedProp]) => {
-      console.log(
-        `replacing node "${originalProp.getText()}" with text "${sortedProp.getText()}"`
-      );
       originalProp.replaceWithText(sortedProp.getText());
     })
   );
 
-  return renderChildrenWithoutWhitespace(typeLiteral, depth);
+  return renderChildrenWithoutWhitespace(typeLiteral, depth + 1);
 };
 
 const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
@@ -116,7 +113,7 @@ const canonizeSyntaxList = (syntaxList: SyntaxList, depth: number): string => {
     .getChildren()
     .filter((it) => !typesExcludedFromRendering.includes(it.getKind()));
 
-  return renderWithoutWhitespace(filteredChildren, depth);
+  return renderWithoutWhitespace(filteredChildren, depth + 1);
 };
 
 const renderIdentifier = (identifier: Identifier): string => {

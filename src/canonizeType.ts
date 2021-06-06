@@ -229,6 +229,8 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
             SyntaxKind.PropertySignature,
             SyntaxKind.UnionType,
             SyntaxKind.EnumDeclaration,
+            SyntaxKind.TypeParameter,
+            SyntaxKind.TypeReference,
           ]) > 0,
         node.getText(),
         ""
@@ -245,7 +247,9 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.EqualsGreaterThanToken:
       return conditionalRender(
         node,
-        (intersection) => intersection([SyntaxKind.ArrowFunction]) > 0,
+        (intersection) =>
+          intersection([SyntaxKind.ArrowFunction]) > 0 &&
+          !intersection([SyntaxKind.TypeLiteral]),
         "",
         node.getText()
       );

@@ -13,6 +13,7 @@ console.log(`found ${sourceFiles.length} source files`);
 const declarations = sourceFiles.flatMap((it) =>
   Array.from(it.getExportedDeclarations())
 );
+// .filter(([name]) => name === "getDeclarationByNameOrThrow");
 // console.log("----------------");
 console.log(
   `found ${R.sum(declarations.map(([_, decl]) => decl.length))} declarations`

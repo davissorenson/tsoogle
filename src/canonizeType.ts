@@ -43,9 +43,10 @@ const renderWithoutWhitespace = (ns: Node[], depth: number): string =>
 const getChildrenTextIfAny = (
   n: Node,
   depth: number,
-  preserveWhitespace = false
+  preserveWhitespace = false,
+  filterChildrenFn: (ns: Node[]) => Node[] = R.identity
 ): string => {
-  const children = n.getChildren();
+  const children = filterChildrenFn(n.getChildren());
 
   return children.length > 0
     ? children
@@ -54,8 +55,12 @@ const getChildrenTextIfAny = (
     : n.getText();
 };
 
-const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
-  removeWhiteSpace(getChildrenTextIfAny(n, depth));
+const renderChildrenWithoutWhitespace = (
+  n: Node,
+  depth: number,
+  filterChildrenFn: (ns: Node[]) => Node[] = R.identity
+): string =>
+  removeWhiteSpace(getChildrenTextIfAny(n, depth, false, filterChildrenFn));
 
 const renderChildrenWithWhitespace = (n: Node, depth: number): string =>
   getChildrenTextIfAny(n, depth, true);
@@ -67,7 +72,19 @@ const canonizeFnType = (fnType: FnType, depth: number): string => {
     param.rename(getNthParameterName(i, depth));
   });
 
-  return renderChildrenWithoutWhitespace(fnType, depth + 1);
+  // cut off arrow functions after the arrow
+  const filterChildren =
+    fnType.getKind() === SyntaxKind.ArrowFunction
+      ? (ns: Node[]) =>
+          R.head(
+            R.splitWhen<Node, Node>(
+              (n: Node) => n.getKind() === SyntaxKind.EqualsGreaterThanToken,
+              ns
+            )
+          )!
+      : R.identity;
+
+  return renderChildrenWithoutWhitespace(fnType, depth + 1, filterChildren);
 };
 
 const canonizeTypeParameter = (
@@ -163,6 +180,7 @@ let typeParametersForDepth: Map<number, number>;
 
 const canonizeTypeInternal = (node: Node, depth: number): string => {
   const kind = node.getKind();
+  // console.log(`kind: ${node.getKindName()}`);
 
   switch (kind) {
     case SyntaxKind.FunctionDeclaration:

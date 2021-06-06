@@ -53,6 +53,10 @@ export const fnWithMultipleTypeParameters = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "FnWithMultipleTypeParameters"
 );
+export const fnWithTypeParametersWithConstraints = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnWithTypeParametersWithConstraints"
+);
 export const function1A = getDeclarationByNameOrThrow(
   functionDeclarations,
   "function1A"

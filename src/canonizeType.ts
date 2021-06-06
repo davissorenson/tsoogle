@@ -40,13 +40,25 @@ const removeWhiteSpace = (s: string): string => s.replaceAll(/\s/g, "");
 const renderWithoutWhitespace = (ns: Node[], depth: number): string =>
   removeWhiteSpace(ns.map((it) => canonizeTypeInternal(it, depth)).join(""));
 
+const getChildrenTextIfAny = (
+  n: Node,
+  depth: number,
+  preserveWhitespace = false
+): string => {
+  const children = n.getChildren();
+
+  return children.length > 0
+    ? children
+        .map((it) => canonizeTypeInternal(it, depth))
+        .join(preserveWhitespace ? "�" : "")
+    : n.getText();
+};
+
 const renderChildrenWithoutWhitespace = (n: Node, depth: number): string =>
-  removeWhiteSpace(
-    n
-      .getChildren()
-      .map((it) => canonizeTypeInternal(it, depth))
-      .join("")
-  );
+  removeWhiteSpace(getChildrenTextIfAny(n, depth));
+
+const renderChildrenWithWhitespace = (n: Node, depth: number): string =>
+  getChildrenTextIfAny(n, depth, true);
 
 type FnType = FunctionTypeNode | ArrowFunction | FunctionDeclaration;
 
@@ -68,7 +80,8 @@ const canonizeTypeParameter = (
   );
   typeParametersForDepth.set(depth - 1, nTypeParametersForDepth + 1);
 
-  return renderChildrenWithoutWhitespace(typeParameter, depth);
+  // make sure the whitespace in "T extends SomeType" gets preserved
+  return renderChildrenWithWhitespace(typeParameter, depth);
 };
 
 const canonizeTupleType = (tupleType: TupleTypeNode, depth: number): string => {
@@ -214,6 +227,8 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
             SyntaxKind.Parameter,
             SyntaxKind.FunctionType,
             SyntaxKind.PropertySignature,
+            SyntaxKind.UnionType,
+            SyntaxKind.EnumDeclaration,
           ]) > 0,
         node.getText(),
         ""
@@ -249,6 +264,9 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.TypeKeyword:
     case SyntaxKind.EqualsToken:
     case SyntaxKind.Block:
+    case SyntaxKind.NewKeyword:
+    case SyntaxKind.ExclamationToken:
+    case SyntaxKind.EqualsEqualsEqualsToken:
       return "";
 
     case SyntaxKind.OpenParenToken:
@@ -266,7 +284,35 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.VoidKeyword:
     case SyntaxKind.NeverKeyword:
     case SyntaxKind.TypeReference:
-      return node.getText();
+    case SyntaxKind.EnumDeclaration:
+    case SyntaxKind.UnionType:
+    case SyntaxKind.IntersectionType:
+    case SyntaxKind.EnumKeyword:
+    case SyntaxKind.EnumMember:
+    case SyntaxKind.QualifiedName:
+    case SyntaxKind.DotToken:
+    case SyntaxKind.VariableDeclaration:
+    case SyntaxKind.NewExpression:
+    case SyntaxKind.CallExpression:
+    case SyntaxKind.PropertyAccessExpression:
+    case SyntaxKind.BarToken:
+    case SyntaxKind.StringLiteral:
+    case SyntaxKind.NumericLiteral:
+    case SyntaxKind.BooleanKeyword:
+    case SyntaxKind.FalseKeyword:
+    case SyntaxKind.TrueKeyword:
+    case SyntaxKind.ExtendsKeyword:
+    case SyntaxKind.IndexedAccessType:
+    case SyntaxKind.ParenthesizedExpression:
+    case SyntaxKind.BinaryExpression:
+    case SyntaxKind.QuestionQuestionToken:
+    case SyntaxKind.ArrayLiteralExpression:
+    case SyntaxKind.AmpersandToken:
+    case SyntaxKind.UndefinedKeyword:
+    case SyntaxKind.ElementAccessExpression:
+    case SyntaxKind.NonNullExpression:
+    case SyntaxKind.UnknownKeyword:
+      return renderChildrenWithoutWhitespace(node, depth);
 
     default:
       throw new Error(`Unable to handle node of kind ${node.getKindName()}.`);
@@ -276,7 +322,7 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
 
 const canonizeType = (type: Node): string => {
   typeParametersForDepth = new Map<number, number>([[0, 0]]);
-  return canonizeTypeInternal(type, 0);
+  return canonizeTypeInternal(type, 0).replaceAll("�", " ");
 };
 
 export default canonizeType;

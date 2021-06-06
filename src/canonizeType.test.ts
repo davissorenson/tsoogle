@@ -45,6 +45,12 @@ describe("canonizeTypeName", () => {
           canonizeType(testDeclarations.fnWithMultipleTypeParameters)
         ).toBe("<A0,B0,C0>(a0:A0,b0:B0)=>C0[]");
       });
+
+      it("should canonize functions with type parameters which have constraints", () => {
+        expect(
+          canonizeType(testDeclarations.fnWithTypeParametersWithConstraints)
+        ).toBe("<A0 extends SomeType>(a0:A0)=>A0[]");
+      });
     });
   });
 

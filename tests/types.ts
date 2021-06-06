@@ -20,6 +20,12 @@ export type FnWithMultipleTypeParameters = <T, U, V>(
   anotherThing: U
 ) => V[];
 
+export type SomeType = Array<number>;
+
+export type FnWithTypeParametersWithConstraints = <T extends SomeType>(
+  someArg: T
+) => T[];
+
 export type UnnamedTupleType = [string, number];
 
 export type UnnamedNestedTupleType = [string, [number, string[]]];

@@ -43,3 +43,22 @@ export const function2B = (
 };
 
 export const notAFunction = 123;
+
+export type SomeType = "wii" | "woo";
+
+export const fnWithTypeConstraint = <T extends SomeType>(anArg: T): T[] => {
+  return [anArg];
+};
+
+export const fnWithFnInTypeConstraint = <
+  T extends {
+    something: (arg1: string[], arg2: number | string) => string | undefined;
+  }
+>(
+  something: T
+): T | undefined => {
+  return something;
+};
+
+export const fnWithNoBlock = (_someArg1: string, anotherArg: number): number =>
+  anotherArg;

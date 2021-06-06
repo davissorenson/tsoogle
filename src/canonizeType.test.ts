@@ -33,6 +33,12 @@ describe("canonizeTypeName", () => {
       );
     });
 
+    it("should canonize arrow functions with no block", () => {
+      expect(canonizeType(testDeclarations.fnWithNoBlock)).toBe(
+        "(a0:string,b0:number)=>number"
+      );
+    });
+
     describe("functions with type parameters", () => {
       it("should canonize functions with one type parameter", () => {
         expect(canonizeType(testDeclarations.fnWithTypeParameter)).toBe(
@@ -46,10 +52,23 @@ describe("canonizeTypeName", () => {
         ).toBe("<A0,B0,C0>(a0:A0,b0:B0)=>C0[]");
       });
 
+      it("should canonize functions with a type constraint", () => {
+        expect(canonizeType(testDeclarations.fnWithTypeConstraint)).toBe(
+          "<A0 extends SomeType>(a0:A0)=>A0[]"
+        );
+      });
+
       it("should canonize functions with type parameters which have constraints", () => {
         expect(
           canonizeType(testDeclarations.fnWithTypeParametersWithConstraints)
         ).toBe("<A0 extends SomeType>(a0:A0)=>A0[]");
+      });
+
+      it("should canonize functions with functions in the type constraint", () => {
+        // TODO: the function argument names in the type argument should probably be a0, b0
+        expect(canonizeType(testDeclarations.fnWithFnInTypeConstraint)).toBe(
+          "<A0 extends {something:(a1:string[],b1:number|string)=>string|undefined;}>(a0:A0)=>A0|undefined"
+        );
       });
     });
   });

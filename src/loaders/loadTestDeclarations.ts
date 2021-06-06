@@ -37,6 +37,12 @@ const functionDeclarations = getAllDeclarationsOfKind(
   SyntaxKind.FunctionDeclaration
 );
 
+const constDeclarationsByKind = declarationsByKind(constDeclarationsFile);
+const constFnDeclarations = getAllDeclarationsOfKind(
+  constDeclarationsByKind,
+  SyntaxKind.VariableDeclaration
+);
+
 // functions
 export const someFunction1AFnType = someFunction1A.arrowFn;
 export const someFunction1BFnType = someFunction1B.arrowFn;
@@ -64,6 +70,18 @@ export const function1A = getDeclarationByNameOrThrow(
 export const function2A = getDeclarationByNameOrThrow(
   functionDeclarations,
   "function2A"
+);
+export const fnWithNoBlock = getDeclarationByNameOrThrow(
+  constFnDeclarations,
+  "fnWithNoBlock"
+);
+export const fnWithTypeConstraint = getDeclarationByNameOrThrow(
+  constFnDeclarations,
+  "fnWithTypeConstraint"
+);
+export const fnWithFnInTypeConstraint = getDeclarationByNameOrThrow(
+  constFnDeclarations,
+  "fnWithFnInTypeConstraint"
 );
 
 // tuples

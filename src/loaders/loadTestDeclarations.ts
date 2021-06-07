@@ -1,11 +1,8 @@
 import { SyntaxKind } from "ts-morph";
-import declarationsToFns from "../declarationsToFns";
-import { ArrowFnAndDeclaration } from "../types";
 import declarationsByKind, {
   getAllDeclarationsOfKind,
   getDeclarationByNameOrThrow,
 } from "../utils/declarationsByKind";
-import { getFnByName } from "../utils/getFnByName";
 import {
   loadConstDeclarations,
   loadFunctionDeclarations,
@@ -16,15 +13,6 @@ const constDeclarationsFile = loadConstDeclarations();
 const typeDeclarationsFile = loadTypeDeclarations();
 const functionDeclarationsFile = loadFunctionDeclarations();
 
-const fns = declarationsToFns(constDeclarationsFile);
-const someFunction1A = getFnByName(
-  fns,
-  "someFunction1A"
-) as ArrowFnAndDeclaration;
-const someFunction1B = getFnByName(
-  fns,
-  "someFunction1B"
-) as ArrowFnAndDeclaration;
 const typeDeclarationsByKind = declarationsByKind(typeDeclarationsFile);
 const typeAliasDeclarations = getAllDeclarationsOfKind(
   typeDeclarationsByKind,
@@ -44,9 +32,14 @@ const constFnDeclarations = getAllDeclarationsOfKind(
 );
 
 // functions
-export const someFunction1AFnType = someFunction1A.arrowFn;
-export const someFunction1BFnType = someFunction1B.arrowFn;
-
+export const someFunction1A = getDeclarationByNameOrThrow(
+  constFnDeclarations,
+  "someFunction1A"
+);
+export const someFunction1B = getDeclarationByNameOrThrow(
+  constFnDeclarations,
+  "someFunction1B"
+);
 export const nestedFnType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedFnType"

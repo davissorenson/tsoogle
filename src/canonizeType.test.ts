@@ -4,13 +4,13 @@ import * as testDeclarations from "./loaders/loadTestDeclarations";
 describe("canonizeTypeName", () => {
   describe("function types", () => {
     it("should preserve function parameters when they're already correct", () => {
-      expect(canonizeType(testDeclarations.someFunction1AFnType)).toBe(
+      expect(canonizeType(testDeclarations.someFunction1A)).toBe(
         "(a0:number,b0:string)=>string[]"
       );
     });
 
     it("should rename all function parameters", () => {
-      expect(canonizeType(testDeclarations.someFunction1BFnType)).toBe(
+      expect(canonizeType(testDeclarations.someFunction1B)).toBe(
         "(a0:number,b0:string)=>string[]"
       );
     });

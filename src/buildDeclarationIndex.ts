@@ -1,10 +1,13 @@
 import { ExportedDeclarations } from "ts-morph";
 import canonizeType from "./canonizeType";
 
+const declarationSummary = (decl: ExportedDeclarations): string =>
+  `\t${decl.getSourceFile().getFilePath()}:${decl.getStartLineNumber()} ${decl
+    .getSymbolOrThrow()
+    .getName()}`;
+
 const declarationsSummary = (declarations: ExportedDeclarations[]): string =>
-  declarations
-    .map((decl) => `\t${decl.getSymbolOrThrow().getName()}`)
-    .join("\n");
+  declarations.map(declarationSummary).join("\n");
 
 class DeclarationIndex<T extends ExportedDeclarations> {
   private map = new Map<string, T[]>();
@@ -33,9 +36,8 @@ class DeclarationIndex<T extends ExportedDeclarations> {
       .sort(([hashA], [hashB]) => hashA.localeCompare(hashB))
       .map(
         ([hash, declarations]) =>
-          `${hash}: ${declarations.length}\n${declarationsSummary(
-            declarations
-          )}`
+          `${hash}: ${declarations.length}\n` +
+          `${declarationsSummary(declarations)}`
       )
       .join("\n");
   }

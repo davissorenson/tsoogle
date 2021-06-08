@@ -18,6 +18,10 @@ const typeAliasDeclarations = getAllDeclarationsOfKind(
   typeDeclarationsByKind,
   SyntaxKind.TypeAliasDeclaration
 );
+const enumDeclarations = getAllDeclarationsOfKind(
+  typeDeclarationsByKind,
+  SyntaxKind.EnumDeclaration
+);
 
 const functionDeclarationsByKind = declarationsByKind(functionDeclarationsFile);
 const functionDeclarations = getAllDeclarationsOfKind(
@@ -76,6 +80,18 @@ export const fnWithFnInTypeConstraint = getDeclarationByNameOrThrow(
   constFnDeclarations,
   "fnWithFnInTypeConstraint"
 );
+export const fnTypeWithNamedTuple = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnTypeWithNamedTuple"
+);
+export const fnTypeWithNestedNamedTuple = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnTypeWithNestedNamedTuple"
+);
+export const fnTypeWithNestedObjectType = getDeclarationByNameOrThrow(
+  typeAliasDeclarations,
+  "FnTypeWithNestedObjectType"
+);
 
 // tuples
 export const unnamedTupleType = getDeclarationByNameOrThrow(
@@ -108,15 +124,13 @@ export const nestedObjectType = getDeclarationByNameOrThrow(
   typeAliasDeclarations,
   "NestedObjectType"
 );
-export const fnTypeWithNamedTuple = getDeclarationByNameOrThrow(
-  typeAliasDeclarations,
-  "FnTypeWithNamedTuple"
+
+// enum types
+export const enumType = getDeclarationByNameOrThrow(
+  enumDeclarations,
+  "EnumType"
 );
-export const fnTypeWithNestedNamedTuple = getDeclarationByNameOrThrow(
-  typeAliasDeclarations,
-  "FnTypeWithNestedNamedTuple"
-);
-export const fnTypeWithNestedObjectType = getDeclarationByNameOrThrow(
-  typeAliasDeclarations,
-  "FnTypeWithNestedObjectType"
+export const enumTypeWithLiterals = getDeclarationByNameOrThrow(
+  enumDeclarations,
+  "EnumTypeWithLiterals"
 );

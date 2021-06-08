@@ -92,3 +92,16 @@ export type FnTypeWithNestedObjectType = (
     baz: number[];
   };
 };
+
+export enum EnumType {
+  Value1,
+  Value2,
+  SomeOtherValue,
+}
+
+export enum EnumTypeWithLiterals {
+  SomeValue1 = "a value",
+  AnotherValue = "another value",
+  SomeValue2 = "some other value",
+  NumericValue = 1,
+}

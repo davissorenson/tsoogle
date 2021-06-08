@@ -247,7 +247,7 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
             SyntaxKind.FunctionType,
             SyntaxKind.PropertySignature,
             SyntaxKind.UnionType,
-            SyntaxKind.EnumDeclaration,
+            SyntaxKind.EnumMember,
             SyntaxKind.TypeParameter,
             SyntaxKind.TypeReference,
           ]) > 0,
@@ -283,9 +283,17 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
         node.getText()
       );
 
+    case SyntaxKind.EqualsToken:
+      return conditionalRender(
+        node,
+        (intersection) => intersection([SyntaxKind.EnumMember]) > 0,
+        node.getText(),
+        ""
+      );
+
+    case SyntaxKind.EnumKeyword:
     case SyntaxKind.FunctionKeyword:
     case SyntaxKind.TypeKeyword:
-    case SyntaxKind.EqualsToken:
     case SyntaxKind.Block:
     case SyntaxKind.NewKeyword:
     case SyntaxKind.ExclamationToken:
@@ -310,7 +318,6 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.EnumDeclaration:
     case SyntaxKind.UnionType:
     case SyntaxKind.IntersectionType:
-    case SyntaxKind.EnumKeyword:
     case SyntaxKind.EnumMember:
     case SyntaxKind.QualifiedName:
     case SyntaxKind.DotToken:

@@ -119,6 +119,20 @@ describe("canonizeTypeName", () => {
     });
   });
 
+  describe("enum types", () => {
+    it("should canonize a basic enum", () => {
+      expect(canonizeType(testDeclarations.enumType)).toBe(
+        "{Value1,Value2,SomeOtherValue,}"
+      );
+    });
+
+    it("should canonize an enum with specified literals", () => {
+      expect(canonizeType(testDeclarations.enumTypeWithLiterals)).toBe(
+        '{SomeValue1="avalue",AnotherValue="anothervalue",SomeValue2="someothervalue",NumericValue=1,}'
+      );
+    });
+  });
+
   describe("mixed types", () => {
     it("should anonymize a named tuple within a function type", () => {
       expect(canonizeType(testDeclarations.fnTypeWithNamedTuple)).toBe(

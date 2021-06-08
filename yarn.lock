@@ -588,13 +588,6 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@ts-morph/bootstrap@0.10.0":
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/@ts-morph/bootstrap/-/bootstrap-0.10.0.tgz#71f86675e158cb8e2891b8d7b650e5789325d8c1"
-  integrity sha512-OWD45wxKeGM+aiUf/LweC7vvEirid2nSTfVVGK+vhXQkLmAXBFOQqHsXPHLcxvpZYAuGGLDONMcUcdv+4b/JYA==
-  dependencies:
-    "@ts-morph/common" "~0.10.0"
-
 "@ts-morph/common@~0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@ts-morph/common/-/common-0.10.0.tgz#d032ea6f6d4115b72fa50ad56009baebcc1e71b8"

@@ -14,6 +14,7 @@ import {
   TypeParameterDeclaration,
 } from "ts-morph";
 
+const WHITESPACE_PLACEHOLDER = "�";
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const TYPE_PARAMETER_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -51,7 +52,7 @@ const getChildrenTextIfAny = (
   return children.length > 0
     ? children
         .map((it) => canonizeTypeInternal(it, depth))
-        .join(preserveWhitespace ? "�" : "")
+        .join(preserveWhitespace ? WHITESPACE_PLACEHOLDER : "")
     : n.getText();
 };
 
@@ -344,7 +345,7 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
 
 const canonizeType = (type: Node): string => {
   typeParametersForDepth = new Map<number, number>([[0, 0]]);
-  return canonizeTypeInternal(type, 0).replaceAll("�", " ");
+  return canonizeTypeInternal(type, 0).replaceAll(WHITESPACE_PLACEHOLDER, " ");
 };
 
 export default canonizeType;

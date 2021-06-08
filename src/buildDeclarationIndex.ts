@@ -1,29 +1,63 @@
-import { ExportedDeclarations } from "ts-morph";
+import { ExportedDeclarations, TypeChecker } from "ts-morph";
 import canonizeType from "./canonizeType";
+import getOriginalTypeName from "./getOriginalTypeString";
 
-const declarationSummary = (decl: ExportedDeclarations): string =>
-  `\t${decl.getSourceFile().getFilePath()}:${decl.getStartLineNumber()} ${decl
-    .getSymbolOrThrow()
-    .getName()}`;
+type DeclarationWithMetaData = {
+  declaration: ExportedDeclarations;
+  name: string;
+  originalTypeName: string;
+  location: string;
+};
 
-const declarationsSummary = (declarations: ExportedDeclarations[]): string =>
+const declarationSummary = (decl: DeclarationWithMetaData): string =>
+  `\t${decl.name} :: ${decl.originalTypeName}\n\t\t${decl.location}`;
+
+const declarationsSummary = (declarations: DeclarationWithMetaData[]): string =>
   declarations.map(declarationSummary).join("\n");
 
-class DeclarationIndex<T extends ExportedDeclarations> {
-  private map = new Map<string, T[]>();
+class DeclarationIndex {
+  private map = new Map<string, DeclarationWithMetaData[]>();
+  private getOriginalTypeName: ReturnType<typeof getOriginalTypeName>;
 
-  public constructor(private hashFn: (item: T) => string, declarations: T[]) {
+  public constructor(
+    private hashFn: (item: ExportedDeclarations) => string,
+    typeChecker: TypeChecker,
+    declarations: ExportedDeclarations[]
+  ) {
+    this.getOriginalTypeName = getOriginalTypeName(typeChecker);
     declarations.map(this.store.bind(this));
   }
 
-  public store(declaration: T): void {
+  public store(declaration: ExportedDeclarations): void {
+    const originalTypeName = this.getOriginalTypeName(declaration);
     const hash = this.hashFn(declaration);
     const declarationsForHash = this.map.get(hash);
 
-    this.map.set(hash, [...(declarationsForHash ?? []), declaration]);
+    this.map.set(hash, [
+      ...(declarationsForHash ?? []),
+      this.buildMetaData(declaration, originalTypeName),
+    ]);
   }
 
-  public get(hash: string): T[] | undefined {
+  private buildMetaData(
+    declaration: ExportedDeclarations,
+    originalTypeName: string
+  ): DeclarationWithMetaData {
+    return {
+      declaration,
+      name: declaration.getSymbolOrThrow().getName(),
+      originalTypeName,
+      location: this.buildDeclarationLocation(declaration),
+    };
+  }
+
+  private buildDeclarationLocation(declaration: ExportedDeclarations): string {
+    return `${declaration
+      .getSourceFile()
+      .getFilePath()}:${declaration.getStartLineNumber()}`;
+  }
+
+  public get(hash: string): DeclarationWithMetaData[] | undefined {
     return this.map.get(hash);
   }
 
@@ -37,15 +71,17 @@ class DeclarationIndex<T extends ExportedDeclarations> {
       .map(
         ([hash, declarations]) =>
           `${hash}: ${declarations.length}\n` +
-          `${declarationsSummary(declarations)}`
+          declarationsSummary(declarations) +
+          "\n"
       )
       .join("\n");
   }
 }
 
 const buildDeclarationIndex = (
-  declarations: ExportedDeclarations[]
-): DeclarationIndex<ExportedDeclarations> =>
-  new DeclarationIndex<ExportedDeclarations>(canonizeType, declarations);
+  declarations: ExportedDeclarations[],
+  typeChecker: TypeChecker
+): DeclarationIndex =>
+  new DeclarationIndex(canonizeType, typeChecker, declarations);
 
 export default buildDeclarationIndex;

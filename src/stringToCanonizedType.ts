@@ -37,7 +37,12 @@ const stringToCanonizedType = (typeDescription: string): string => {
     TYPENAME
   );
 
-  return canonizeType(declaration);
+  const canonizedTypeName = canonizeType(declaration);
+
+  // clean up file we just created
+  project.removeSourceFile(sourceFile);
+
+  return canonizedTypeName;
 };
 
 export default stringToCanonizedType;

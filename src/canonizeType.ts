@@ -13,6 +13,7 @@ import {
   TypeLiteralNode,
   TypeParameterDeclaration,
 } from "ts-morph";
+import "ts-replace-all";
 
 const WHITESPACE_PLACEHOLDER = "�";
 const PARAMETER_NAMES = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";

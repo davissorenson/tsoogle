@@ -15,8 +15,9 @@ type DeclarationWithMetaData = DeclarationWithName & {
 const declarationSummary = (decl: DeclarationWithMetaData): string =>
   `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.location}`;
 
-const declarationsSummary = (declarations: DeclarationWithMetaData[]): string =>
-  declarations.map(declarationSummary).join("\n");
+export const declarationsSummary = (
+  declarations: DeclarationWithMetaData[]
+): string => declarations.map(declarationSummary).join("\n");
 
 class DeclarationIndex {
   private map = new Map<string, DeclarationWithMetaData[]>();
@@ -36,8 +37,8 @@ class DeclarationIndex {
     );
   }
 
-  public get(hash: string): DeclarationWithMetaData[] | undefined {
-    return this.map.get(hash);
+  public search(hash: string): DeclarationWithMetaData[] {
+    return this.map.get(hash) ?? [];
   }
 
   public getKeys(): string[] {

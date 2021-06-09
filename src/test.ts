@@ -1,21 +1,11 @@
 import { Project } from "ts-morph";
-import DeclarationIndex from "./DeclarationIndex";
+import DeclarationIndex, { declarationsSummary } from "./DeclarationIndex";
 import stringToCanonizedType from "./stringToCanonizedType";
 
 const project = new Project({ tsConfigFilePath: "tsconfig.json" });
 const sourceFiles = project.getSourceFiles();
 
 console.log(`found ${sourceFiles.length} source files`);
-// console.log(
-//   `source files:\n${sourceFiles.map((sf) => sf.getBaseName()).join("\n")}`
-// );
-
-// .filter(([name]) => name === "getFnByName");
-// console.log("----------------");
-// console.log("----------------");
-// console.log(
-//   `declarations:\n${declarations.map(([declName]) => declName).join("\n")}`
-// );
 
 const declarationIndex = new DeclarationIndex(
   project.getTypeChecker(),
@@ -24,6 +14,16 @@ const declarationIndex = new DeclarationIndex(
 
 console.log(declarationIndex.debugSummary());
 
-const typeCanonizedFromString = stringToCanonizedType("(abc: string) => void");
+const typeCanonizedFromString = stringToCanonizedType(
+  "(declarations: ExportedDeclarations[]) => DeclarationsByKind"
+);
 
 console.log(`typeCanonizedFromString: ${typeCanonizedFromString}`);
+
+const searchResults = declarationIndex.search(typeCanonizedFromString);
+
+console.log(
+  `search results in the index: ${searchResults.length}\n${declarationsSummary(
+    searchResults
+  )}`
+);

@@ -292,6 +292,9 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
         ""
       );
 
+    case SyntaxKind.TypeQuery:
+      return "Type query";
+
     case SyntaxKind.EnumKeyword:
     case SyntaxKind.FunctionKeyword:
     case SyntaxKind.TypeKeyword:
@@ -343,6 +346,14 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.ElementAccessExpression:
     case SyntaxKind.NonNullExpression:
     case SyntaxKind.UnknownKeyword:
+    case SyntaxKind.ClassDeclaration:
+    case SyntaxKind.ClassKeyword:
+    case SyntaxKind.PropertyDeclaration:
+    case SyntaxKind.PrivateKeyword:
+    case SyntaxKind.PublicKeyword:
+    case SyntaxKind.Constructor:
+    case SyntaxKind.ConstructorKeyword:
+    case SyntaxKind.MethodDeclaration:
       return renderChildrenWithoutWhitespace(node, depth);
 
     default:

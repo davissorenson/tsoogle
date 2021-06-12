@@ -1,8 +1,53 @@
 import * as fs from "fs";
+import R from "ramda";
 import { Project, ts } from "ts-morph";
 
-const watch = (filenames: string[], options: ts.CompilerOptions): void => {
+const watch = (project: Project, options: ts.CompilerOptions): void => {
+  const getProjectFilenames = (
+    options: { lookForRemoved: boolean } = { lookForRemoved: false }
+  ): string[] => {
+    // FIXME: get the real config path
+    project.addSourceFilesFromTsConfig("tsconfig.json");
+    const sourceFiles = project.getSourceFiles();
+
+    if (options.lookForRemoved) {
+      sourceFiles.forEach((sourceFile) => {
+        if (!fs.existsSync(sourceFile.getFilePath())) {
+          project.removeSourceFile(sourceFile);
+        }
+      });
+
+      return project.getSourceFiles().map((it) => it.getFilePath());
+    }
+
+    return sourceFiles.map((it) => it.getFilePath());
+  };
+
+  let filenames = getProjectFilenames();
   const files: ts.MapLike<{ version: number }> = {};
+
+  const updateFilenames = (): void => {
+    console.log("looking for new or removed files in the project...");
+    const currentFilenames = getProjectFilenames({ lookForRemoved: true });
+    const newFilenames = R.difference(currentFilenames, filenames);
+    const removedFilenames = R.difference(filenames, currentFilenames);
+
+    if (newFilenames.length > 0) {
+      console.log(`new files:\n${newFilenames.join("\n")}`);
+    }
+
+    if (removedFilenames.length > 0) {
+      console.log(`removed files:\n${removedFilenames.join("\n")}`);
+    }
+
+    newFilenames.forEach((filename) => (files[filename] = { version: 0 }));
+    removedFilenames.forEach((filename) => delete files[filename]);
+
+    filenames = currentFilenames;
+  };
+
+  // FIXME: there has to be a better way
+  setInterval(updateFilenames, 3000);
 
   // initialize the list of files
   filenames.forEach((filename) => {
@@ -11,7 +56,7 @@ const watch = (filenames: string[], options: ts.CompilerOptions): void => {
 
   const servicesHost: ts.LanguageServiceHost = {
     getScriptFileNames: () => filenames,
-    getScriptVersion: (filename) =>
+    getScriptVersion: (filename): string =>
       files[filename] && files[filename].version.toString(),
     getScriptSnapshot: (filename) => {
       if (!fs.existsSync(filename)) {
@@ -99,15 +144,10 @@ const watch = (filenames: string[], options: ts.CompilerOptions): void => {
 };
 
 const project = new Project({ tsConfigFilePath: "tsconfig.json" });
-const sourceFilenames = project
-  .getSourceFiles()
-  .map((it) => it.getFilePath().toString());
 
-console.log(`Watching ${sourceFilenames.join("\n")}`);
 const compilerOptions = ts.convertCompilerOptionsFromJson(
   { module: "commonjs", outDir: "dist" },
   "."
 );
-console.log(compilerOptions);
 
-watch(sourceFilenames, compilerOptions.options);
+watch(project, compilerOptions.options);

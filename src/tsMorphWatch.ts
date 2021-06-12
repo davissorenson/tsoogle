@@ -1,62 +1,25 @@
+import chokidar from "chokidar";
 import * as fs from "fs";
-import R from "ramda";
 import { Project, ts } from "ts-morph";
 
-const watch = (project: Project, options: ts.CompilerOptions): void => {
-  const getProjectFilenames = (
-    options: { lookForRemoved: boolean } = { lookForRemoved: false }
-  ): string[] => {
-    // TODO: get the real config path
-    project.addSourceFilesFromTsConfig("tsconfig.json");
+const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
+  const getProjectFilenames = (): string[] => {
     const sourceFiles = project.getSourceFiles();
-
-    if (options.lookForRemoved) {
-      sourceFiles.forEach((sourceFile) => {
-        if (!fs.existsSync(sourceFile.getFilePath())) {
-          project.removeSourceFile(sourceFile);
-        }
-      });
-
-      return project.getSourceFiles().map((it) => it.getFilePath());
-    }
-
     return sourceFiles.map((it) => it.getFilePath());
   };
 
   let filenames = getProjectFilenames();
   const files: ts.MapLike<{ version: number }> = {};
 
-  const updateFilenames = (): void => {
-    console.log("looking for new or removed files in the project...");
-    const currentFilenames = getProjectFilenames({ lookForRemoved: true });
-    const newFilenames = R.difference(currentFilenames, filenames);
-    const removedFilenames = R.difference(filenames, currentFilenames);
-
-    if (newFilenames.length > 0) {
-      console.log(`new files:\n${newFilenames.join("\n")}`);
-    }
-
-    if (removedFilenames.length > 0) {
-      console.log(`removed files:\n${removedFilenames.join("\n")}`);
-    }
-
-    newFilenames.forEach((filename) => (files[filename] = { version: 0 }));
-    removedFilenames.forEach((filename) => delete files[filename]);
-
-    filenames = currentFilenames;
-  };
-
-  // TODO: there has to be a better way
-  // maybe watching a directory or something?
-  setInterval(updateFilenames, 3000);
-
   // initialize the list of files
   filenames.forEach((filename) => {
+    console.log(`watching ${filename}`);
     files[filename] = { version: 0 };
   });
 
   const servicesHost: ts.LanguageServiceHost = {
-    getScriptFileNames: () => filenames,
+    getScriptFileNames: (): string[] =>
+      project.getSourceFiles().map((it) => it.getFilePath()),
     getScriptVersion: (filename): string =>
       files[filename] && files[filename].version.toString(),
     getScriptSnapshot: (filename) => {
@@ -67,7 +30,7 @@ const watch = (project: Project, options: ts.CompilerOptions): void => {
       return ts.ScriptSnapshot.fromString(fs.readFileSync(filename).toString());
     },
     getCurrentDirectory: () => process.cwd(),
-    getCompilationSettings: () => options,
+    getCompilationSettings: () => compilerOptions,
     getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
     fileExists: ts.sys.fileExists,
     readFile: ts.sys.readFile,
@@ -92,28 +55,50 @@ const watch = (project: Project, options: ts.CompilerOptions): void => {
     }
   };
 
-  filenames.forEach((filename) => {
-    // First time around, emit all files
-    updateFile(filename);
-
-    // Add a watch on the file to handle next change
-    fs.watchFile(
-      filename,
-      { persistent: true, interval: 250 },
-      (curr, prev) => {
-        // Check timestamp
-        if (+curr.mtime <= +prev.mtime) {
-          return;
-        }
-
-        // Update the version to signal a change in the file
-        files[filename].version++;
-
-        // write the changes to disk
-        updateFile(filename);
-      }
-    );
+  // TODO: use actual path
+  console.log(`watching ${process.cwd()}/src`);
+  const watcher = chokidar.watch("./src", {
+    ignored: /(^|[\/\\])\../,
+    persistent: true,
   });
+
+  const addRootDir = (path: string): string => `${process.cwd()}/${path}`;
+
+  watcher
+    .on("add", (path) => {
+      const fullPath = addRootDir(path);
+      console.log(`adding file at path ${path}`);
+      project.addSourceFilesFromTsConfig("tsconfig.json");
+      files[fullPath] = { version: 0 };
+      updateFile(path);
+    })
+    .on("change", (path) => {
+      const fullPath = addRootDir(path);
+      console.log(`updating file at path ${path}`);
+      const sourceFile = project.getSourceFile(path);
+      // TODO: this forgets any nodes associated with this file, handle that
+      sourceFile?.refreshFromFileSystemSync();
+      console.log(`files[fullPath].version: ${files[fullPath].version}`);
+      files[fullPath].version++;
+      updateFile(path);
+    })
+    .on("unlink", (path) => {
+      const fullPath = addRootDir(path);
+      console.log(`removing file at path ${path}`);
+      const sourceFile = project.getSourceFile(path);
+      if (sourceFile) project.removeSourceFile(sourceFile);
+      delete files[fullPath];
+      // TODO: updateFile(path) here?
+    })
+    .on("addDir", (path) => {
+      console.log(`adding dir ${path}`);
+      project.addDirectoryAtPath(path);
+      // TODO: what to do with files here?
+    })
+    .on("unlinkDir", (path) => {
+      console.log(`removing dir ${path}`);
+      // TODO: what to do with files here?
+    });
 
   const logErrors = (fileName: string): void => {
     let allDiagnostics = services

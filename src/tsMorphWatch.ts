@@ -6,7 +6,7 @@ const watch = (project: Project, options: ts.CompilerOptions): void => {
   const getProjectFilenames = (
     options: { lookForRemoved: boolean } = { lookForRemoved: false }
   ): string[] => {
-    // FIXME: get the real config path
+    // TODO: get the real config path
     project.addSourceFilesFromTsConfig("tsconfig.json");
     const sourceFiles = project.getSourceFiles();
 
@@ -46,7 +46,8 @@ const watch = (project: Project, options: ts.CompilerOptions): void => {
     filenames = currentFilenames;
   };
 
-  // FIXME: there has to be a better way
+  // TODO: there has to be a better way
+  // maybe watching a directory or something?
   setInterval(updateFilenames, 3000);
 
   // initialize the list of files
@@ -85,9 +86,7 @@ const watch = (project: Project, options: ts.CompilerOptions): void => {
 
     let output = services.getEmitOutput(filename);
 
-    if (!output.emitSkipped) {
-      console.log(`Emitting ${filename}`);
-    } else {
+    if (output.emitSkipped) {
       console.log(`Emitting ${filename} failed`);
       logErrors(filename);
     }

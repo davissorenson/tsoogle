@@ -99,15 +99,6 @@ class DeclarationIndexStorage {
   public searchByFilePath(filePath: string): DeclarationWithMetaData[] {
     const hashes = this.filePathToHashes.get(filePath) ?? [];
 
-    // console.log(
-    //   `this.filePathToHashes enries:\n${Array.from(
-    //     this.filePathToHashes.entries()
-    //   )}`
-    // );
-    console.log(
-      `searched filePathToHashes for file ${filePath}, found hashes: ${hashes}`
-    );
-
     return hashes.flatMap((hash) => {
       const allDeclarationsForHash = this.hashToMetadata.get(hash) ?? [];
       return allDeclarationsForHash.filter(

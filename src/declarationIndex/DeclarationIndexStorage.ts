@@ -1,7 +1,7 @@
 import {
   DeclarationWithMetaData,
   HashAndDeclarationWithMetadata,
-} from "./DeclarationIndex";
+} from "./types";
 
 class DeclarationIndexStorage {
   /**

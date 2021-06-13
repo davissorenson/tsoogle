@@ -2,23 +2,11 @@ import { ExportedDeclarations, SourceFile, TypeChecker } from "ts-morph";
 import canonizeType from "../canonizeType";
 import getOriginalTypeName from "../getOriginalTypeString";
 import DeclarationIndexStorage from "./DeclarationIndexStorage";
-
-export type DeclarationWithName = {
-  declaration: ExportedDeclarations;
-  name: string;
-};
-
-export type DeclarationWithMetaData = DeclarationWithName & {
-  originalTypeString: string;
-  filePath: string;
-  lineNo: number;
-};
-
-// TODO: try out nominal typing for hash
-export type HashAndDeclarationWithMetadata = {
-  hash: string;
-  declarationWithMetadata: DeclarationWithMetaData;
-};
+import {
+  DeclarationWithMetaData,
+  DeclarationWithName,
+  HashAndDeclarationWithMetadata,
+} from "./types";
 
 const declarationSummary = (decl: DeclarationWithMetaData): string =>
   `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.filePath}:${decl.lineNo}`;
@@ -143,6 +131,10 @@ class DeclarationIndex {
       filePath: declaration.getSourceFile().getFilePath(),
       lineNo: declaration.getStartLineNumber(),
     };
+  }
+
+  public getStorage() {
+    return this.storage;
   }
 }
 

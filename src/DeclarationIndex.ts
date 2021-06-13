@@ -9,24 +9,107 @@ type DeclarationWithName = {
 
 type DeclarationWithMetaData = DeclarationWithName & {
   originalTypeString: string;
-  location: string;
+  filePath: string;
+};
+
+// TODO: try out nominal typing for hash
+type HashAndDeclarationWithMetadata = {
+  hash: string;
+  declarationWithMetadata: DeclarationWithMetaData;
 };
 
 const declarationSummary = (decl: DeclarationWithMetaData): string =>
-  `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.location}`;
+  `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.filePath}`;
 
 export const declarationsSummary = (
   declarations: DeclarationWithMetaData[]
 ): string => declarations.map(declarationSummary).join("\n");
 
+class DeclarationIndexStorage {
+  /**
+   * Map from a hash of a TS type to all declarations that match the hash.
+   * Used for storing declarations after extracting them from the project.
+   */
+  private hashToMetadata = new Map<string, DeclarationWithMetaData[]>();
+  /**
+   * Map from a file path to all the hashes of declarations in that file.
+   * Used for removing declarations when a file gets deleted.
+   * @see {@link DeclarationIndexStorage.removeDeclarationsForFilePath}
+   */
+  private filePathToHashes = new Map<string, string[]>();
+
+  /**
+   * Store declarations
+   * @param hashesAndDeclarations Hashes and their corresponding declarations
+   */
+  public addDeclarations(
+    hashesAndDeclarations: HashAndDeclarationWithMetadata[]
+  ): void {
+    hashesAndDeclarations.forEach(({ hash, declarationWithMetadata }) => {
+      const existingDeclarations = this.hashToMetadata.get(hash) ?? [];
+      this.hashToMetadata.set(hash, [
+        ...existingDeclarations,
+        declarationWithMetadata,
+      ]);
+
+      const existingHashes =
+        this.filePathToHashes.get(declarationWithMetadata.filePath) ?? [];
+      this.filePathToHashes.set(declarationWithMetadata.filePath, [
+        ...existingHashes,
+        hash,
+      ]);
+    });
+  }
+
+  /**
+   * Remove all declarations defined in a file
+   * @param filePath File path being removed
+   */
+  public removeDeclarationsForFilePath(filePath: string): void {
+    /**
+     * 1. Get all hashes associated with a file path
+     * 2. Get all declarations associated with those hashes
+     * 3. Remove all declarations which are defined in that file path
+     * 4. Remove the entry from filePathToHashes
+     */
+    console.log(filePath);
+    throw new Error("Not implemented yet!");
+  }
+
+  public searchByHash(hash: string): DeclarationWithMetaData[] {
+    return this.hashToMetadata.get(hash) ?? [];
+  }
+
+  public getKeys(): string[] {
+    return Array.from(this.hashToMetadata.keys());
+  }
+
+  // TODO: improve types
+  public getEntries(): [string, DeclarationWithMetaData[]][] {
+    return Array.from(this.hashToMetadata.entries());
+  }
+}
+
 class DeclarationIndex {
-  private map = new Map<string, DeclarationWithMetaData[]>();
+  private storage = new DeclarationIndexStorage();
+
   private getOriginalTypeName: ReturnType<typeof getOriginalTypeName>;
 
   public constructor(typeChecker: TypeChecker, sourceFiles: SourceFile[]) {
-    const declarations = this.getDeclarationsFromSourceFiles(sourceFiles);
     this.getOriginalTypeName = getOriginalTypeName(typeChecker);
-    declarations.map(this.storeDeclarationWithName.bind(this));
+    this.addFiles(sourceFiles);
+  }
+
+  public addFiles(sourceFiles: SourceFile[]) {
+    const declarations = this.getDeclarationsFromSourceFiles(sourceFiles);
+    this.storeDeclarationsWithNames(declarations);
+  }
+
+  public removeFiles(sourceFiles: SourceFile[]) {
+    console.log(sourceFiles);
+    sourceFiles
+      .map((it) => it.getFilePath())
+      .map(this.storage.removeDeclarationsForFilePath.bind(this));
   }
 
   public store(declaration: ExportedDeclarations): void {
@@ -38,15 +121,16 @@ class DeclarationIndex {
   }
 
   public search(hash: string): DeclarationWithMetaData[] {
-    return this.map.get(hash) ?? [];
+    return this.storage.searchByHash(hash);
   }
 
   public getKeys(): string[] {
-    return Array.from(this.map.keys());
+    return this.storage.getKeys();
   }
 
   public debugSummary(): string {
-    return Array.from(this.map.entries())
+    return this.storage
+      .getEntries()
       .sort(([hashA], [hashB]) => hashA.localeCompare(hashB))
       .map(
         ([hash, declarations]) =>
@@ -57,18 +141,25 @@ class DeclarationIndex {
       .join("\n");
   }
 
-  private storeDeclarationWithName(
-    declarationWithName: DeclarationWithName
+  private storeDeclarationsWithNames(
+    declarationsWithNames: DeclarationWithName[]
   ): void {
-    const { declaration, name } = declarationWithName;
-    const originalTypeString = this.getOriginalTypeName(declaration);
-    const hash = canonizeType(declaration);
-    const declarationsForHash = this.map.get(hash);
+    const hashesAndDeclarations: HashAndDeclarationWithMetadata[] =
+      declarationsWithNames.map(({ declaration, name }) => {
+        const originalTypeString = this.getOriginalTypeName(declaration);
+        const hash = canonizeType(declaration);
 
-    this.map.set(hash, [
-      ...(declarationsForHash ?? []),
-      this.buildMetaData(declaration, name, originalTypeString),
-    ]);
+        return {
+          hash,
+          declarationWithMetadata: this.buildMetaData(
+            declaration,
+            name,
+            originalTypeString
+          ),
+        };
+      });
+
+    this.storage.addDeclarations(hashesAndDeclarations);
   }
 
   private getDeclarationsFromSourceFiles(
@@ -94,11 +185,11 @@ class DeclarationIndex {
       declaration,
       name,
       originalTypeString,
-      location: this.buildDeclarationLocation(declaration),
+      filePath: this.buildDeclarationFilePath(declaration),
     };
   }
 
-  private buildDeclarationLocation(declaration: ExportedDeclarations): string {
+  private buildDeclarationFilePath(declaration: ExportedDeclarations): string {
     return `${declaration
       .getSourceFile()
       .getFilePath()}:${declaration.getStartLineNumber()}`;

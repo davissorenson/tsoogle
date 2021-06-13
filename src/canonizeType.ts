@@ -302,6 +302,7 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.NewKeyword:
     case SyntaxKind.ExclamationToken:
     case SyntaxKind.EqualsEqualsEqualsToken:
+    case SyntaxKind.ObjectLiteralExpression:
       return "";
 
     case SyntaxKind.OpenParenToken:

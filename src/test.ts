@@ -1,5 +1,7 @@
 import { Project } from "ts-morph";
-import DeclarationIndex, { declarationsSummary } from "./DeclarationIndex";
+import DeclarationIndex, {
+  declarationsSummary,
+} from "./declarationIndex/DeclarationIndex";
 import stringToCanonizedType from "./stringToCanonizedType";
 
 const project = new Project({ tsConfigFilePath: "tsconfig.json" });

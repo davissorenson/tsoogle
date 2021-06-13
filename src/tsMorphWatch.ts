@@ -1,7 +1,9 @@
 import chokidar from "chokidar";
 import * as fs from "fs";
 import { Project, ts } from "ts-morph";
-import DeclarationIndex, { declarationsSummary } from "./DeclarationIndex";
+import DeclarationIndex, {
+  declarationsSummary,
+} from "./declarationIndex/DeclarationIndex";
 
 const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
   const getProjectFilenames = (): string[] => {

@@ -72,8 +72,23 @@ class DeclarationIndexStorage {
      * 3. Remove all declarations which are defined in that file path
      * 4. Remove the entry from filePathToHashes
      */
-    console.log(filePath);
-    throw new Error("Not implemented yet!");
+    const hashes = this.filePathToHashes.get(filePath) ?? [];
+    hashes.forEach((hash) => {
+      const allDeclarationsForHash = this.hashToMetadata.get(hash) ?? [];
+      // filter out the declarations from this file
+      const declarationsInOtherFiles = allDeclarationsForHash.filter(
+        (declarationWithMetaData) =>
+          declarationWithMetaData.filePath !== filePath
+      );
+
+      if (declarationsInOtherFiles.length > 0) {
+        this.hashToMetadata.set(hash, declarationsInOtherFiles);
+      } else {
+        this.hashToMetadata.delete(hash);
+      }
+    });
+
+    this.filePathToHashes.delete(filePath);
   }
 
   public searchByHash(hash: string): DeclarationWithMetaData[] {

@@ -355,6 +355,8 @@ const canonizeTypeInternal = (node: Node, depth: number): string => {
     case SyntaxKind.Constructor:
     case SyntaxKind.ConstructorKeyword:
     case SyntaxKind.MethodDeclaration:
+    case SyntaxKind.TypePredicate:
+    case SyntaxKind.IsKeyword:
       return renderChildrenWithoutWhitespace(node, depth);
 
     default:

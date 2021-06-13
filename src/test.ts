@@ -20,7 +20,7 @@ const typeCanonizedFromString = stringToCanonizedType(
 
 console.log(`typeCanonizedFromString: ${typeCanonizedFromString}`);
 
-const searchResults = declarationIndex.search(typeCanonizedFromString);
+const searchResults = declarationIndex.searchByHash(typeCanonizedFromString);
 
 console.log(
   `search results in the index: ${searchResults.length}\n${declarationsSummary(

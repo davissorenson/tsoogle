@@ -1,12 +1,17 @@
 import chokidar from "chokidar";
 import * as fs from "fs";
 import { Project, ts } from "ts-morph";
+import DeclarationIndex, { declarationsSummary } from "./DeclarationIndex";
 
 const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
   const getProjectFilenames = (): string[] => {
     const sourceFiles = project.getSourceFiles();
     return sourceFiles.map((it) => it.getFilePath());
   };
+  const declarationIndex = new DeclarationIndex(
+    project.getTypeChecker(),
+    project.getSourceFiles()
+  );
 
   let filenames = getProjectFilenames();
   const files: ts.MapLike<{ version: number }> = {};
@@ -72,6 +77,8 @@ const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
       withFullPath((fullPath) => {
         console.log(`adding file at path ${fullPath}`);
         project.addSourceFilesFromTsConfig("tsconfig.json");
+        const sourceFile = project.getSourceFile(fullPath);
+        if (sourceFile) declarationIndex.addFile(sourceFile);
         files[fullPath] = { version: 0 };
         updateFile(fullPath);
       })
@@ -82,8 +89,19 @@ const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
         console.log(`updating file at path ${fullPath}`);
         const sourceFile = project.getSourceFile(fullPath);
         console.log(`sourceFile: got ${sourceFile}`);
-        // TODO: this forgets any nodes associated with this file, handle that
-        sourceFile?.refreshFromFileSystemSync();
+        if (sourceFile) {
+          // TODO: this forgets any nodes associated with this file, handle that
+          sourceFile.refreshFromFileSystemSync();
+          declarationIndex.updateFile(sourceFile);
+          const fileDeclarations = declarationIndex.searchByFilePath(
+            sourceFile.getFilePath()
+          );
+          console.log(
+            `declarations in file now: ${
+              fileDeclarations.length
+            }\n${declarationsSummary(fileDeclarations)}`
+          );
+        }
         console.log(`files[fullPath].version: ${files[fullPath].version}`);
         files[fullPath].version++;
         updateFile(fullPath);
@@ -94,7 +112,10 @@ const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
       withFullPath((fullPath) => {
         console.log(`removing file at path ${fullPath}`);
         const sourceFile = project.getSourceFile(fullPath);
-        if (sourceFile) project.removeSourceFile(sourceFile);
+        if (sourceFile) {
+          project.removeSourceFile(sourceFile);
+          declarationIndex.removeFile(sourceFile);
+        }
         delete files[fullPath];
         // TODO: updateFile(path) here?
       })

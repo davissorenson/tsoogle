@@ -10,6 +10,7 @@ type DeclarationWithName = {
 type DeclarationWithMetaData = DeclarationWithName & {
   originalTypeString: string;
   filePath: string;
+  lineNo: number;
 };
 
 // TODO: try out nominal typing for hash
@@ -19,7 +20,7 @@ type HashAndDeclarationWithMetadata = {
 };
 
 const declarationSummary = (decl: DeclarationWithMetaData): string =>
-  `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.filePath}`;
+  `\t${decl.name} :: ${decl.originalTypeString}\n\t\t${decl.filePath}:${decl.lineNo}`;
 
 export const declarationsSummary = (
   declarations: DeclarationWithMetaData[]
@@ -95,6 +96,27 @@ class DeclarationIndexStorage {
     return this.hashToMetadata.get(hash) ?? [];
   }
 
+  public searchByFilePath(filePath: string): DeclarationWithMetaData[] {
+    const hashes = this.filePathToHashes.get(filePath) ?? [];
+
+    // console.log(
+    //   `this.filePathToHashes enries:\n${Array.from(
+    //     this.filePathToHashes.entries()
+    //   )}`
+    // );
+    console.log(
+      `searched filePathToHashes for file ${filePath}, found hashes: ${hashes}`
+    );
+
+    return hashes.flatMap((hash) => {
+      const allDeclarationsForHash = this.hashToMetadata.get(hash) ?? [];
+      return allDeclarationsForHash.filter(
+        (declarationWithMetaData) =>
+          declarationWithMetaData.filePath === filePath
+      );
+    });
+  }
+
   public getKeys(): string[] {
     return Array.from(this.hashToMetadata.keys());
   }
@@ -115,19 +137,33 @@ class DeclarationIndex {
     this.addFiles(sourceFiles);
   }
 
-  public addFiles(sourceFiles: SourceFile[]) {
+  public updateFile(sourceFile: SourceFile): void {
+    this.removeFile(sourceFile);
+    this.addFile(sourceFile);
+  }
+
+  public addFile(sourceFile: SourceFile): void {
+    this.addFiles([sourceFile]);
+  }
+
+  public addFiles(sourceFiles: SourceFile[]): void {
     const declarations = this.getDeclarationsFromSourceFiles(sourceFiles);
     this.storeDeclarationsWithNames(declarations);
   }
 
-  public removeFiles(sourceFiles: SourceFile[]) {
-    console.log(sourceFiles);
-    sourceFiles
-      .map((it) => it.getFilePath())
-      .map(this.storage.removeDeclarationsForFilePath.bind(this));
+  private fileIsString(file: string | SourceFile): file is string {
+    return typeof file === "string";
   }
 
-  public store(declaration: ExportedDeclarations): void {
+  public removeFile(file: SourceFile): void;
+  public removeFile(file: string): void;
+  public removeFile(file: string | SourceFile): void {
+    const filePath = this.fileIsString(file) ? file : file.getFilePath();
+
+    this.storage.removeDeclarationsForFilePath(filePath);
+  }
+
+  public storeDeclaration(declaration: ExportedDeclarations): void {
     throw new Error(
       `Could not store ${declaration
         .getSymbolOrThrow()
@@ -135,8 +171,12 @@ class DeclarationIndex {
     );
   }
 
-  public search(hash: string): DeclarationWithMetaData[] {
+  public searchByHash(hash: string): DeclarationWithMetaData[] {
     return this.storage.searchByHash(hash);
+  }
+
+  public searchByFilePath(filePath: string): DeclarationWithMetaData[] {
+    return this.storage.searchByFilePath(filePath);
   }
 
   public getKeys(): string[] {
@@ -200,14 +240,9 @@ class DeclarationIndex {
       declaration,
       name,
       originalTypeString,
-      filePath: this.buildDeclarationFilePath(declaration),
+      filePath: declaration.getSourceFile().getFilePath(),
+      lineNo: declaration.getStartLineNumber(),
     };
-  }
-
-  private buildDeclarationFilePath(declaration: ExportedDeclarations): string {
-    return `${declaration
-      .getSourceFile()
-      .getFilePath()}:${declaration.getStartLineNumber()}`;
   }
 }
 

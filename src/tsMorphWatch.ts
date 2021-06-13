@@ -62,34 +62,43 @@ const watch = (project: Project, compilerOptions: ts.CompilerOptions): void => {
     persistent: true,
   });
 
-  const addRootDir = (path: string): string => `${process.cwd()}/${path}`;
+  const cwd = process.cwd();
+  const withFullPath = (cb: (fullPath: string) => void) => (path: string) =>
+    cb(`${cwd}/${path}`);
 
   watcher
-    .on("add", (path) => {
-      const fullPath = addRootDir(path);
-      console.log(`adding file at path ${path}`);
-      project.addSourceFilesFromTsConfig("tsconfig.json");
-      files[fullPath] = { version: 0 };
-      updateFile(path);
-    })
-    .on("change", (path) => {
-      const fullPath = addRootDir(path);
-      console.log(`updating file at path ${path}`);
-      const sourceFile = project.getSourceFile(path);
-      // TODO: this forgets any nodes associated with this file, handle that
-      sourceFile?.refreshFromFileSystemSync();
-      console.log(`files[fullPath].version: ${files[fullPath].version}`);
-      files[fullPath].version++;
-      updateFile(path);
-    })
-    .on("unlink", (path) => {
-      const fullPath = addRootDir(path);
-      console.log(`removing file at path ${path}`);
-      const sourceFile = project.getSourceFile(path);
-      if (sourceFile) project.removeSourceFile(sourceFile);
-      delete files[fullPath];
-      // TODO: updateFile(path) here?
-    })
+    .on(
+      "add",
+      withFullPath((fullPath) => {
+        console.log(`adding file at path ${fullPath}`);
+        project.addSourceFilesFromTsConfig("tsconfig.json");
+        files[fullPath] = { version: 0 };
+        updateFile(fullPath);
+      })
+    )
+    .on(
+      "change",
+      withFullPath((fullPath) => {
+        console.log(`updating file at path ${fullPath}`);
+        const sourceFile = project.getSourceFile(fullPath);
+        console.log(`sourceFile: got ${sourceFile}`);
+        // TODO: this forgets any nodes associated with this file, handle that
+        sourceFile?.refreshFromFileSystemSync();
+        console.log(`files[fullPath].version: ${files[fullPath].version}`);
+        files[fullPath].version++;
+        updateFile(fullPath);
+      })
+    )
+    .on(
+      "unlink",
+      withFullPath((fullPath) => {
+        console.log(`removing file at path ${fullPath}`);
+        const sourceFile = project.getSourceFile(fullPath);
+        if (sourceFile) project.removeSourceFile(sourceFile);
+        delete files[fullPath];
+        // TODO: updateFile(path) here?
+      })
+    )
     .on("addDir", (path) => {
       console.log(`adding dir ${path}`);
       project.addDirectoryAtPath(path);

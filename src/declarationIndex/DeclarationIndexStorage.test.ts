@@ -115,4 +115,23 @@ describe("DeclarationIndexStorage", () => {
       });
     });
   });
+
+  describe("searchByFilePath", () => {
+    beforeEach(() => {
+      setupTest();
+    });
+
+    it("finds all declarations for the first test file", () => {
+      expect(storage.searchByFilePath(filePaths[0])).toStrictEqual([
+        declarationsWithMetadata[0],
+        declarationsWithMetadata[1],
+      ]);
+    });
+
+    it("finds all declarations for the second test file", () => {
+      expect(storage.searchByFilePath(filePaths[1])).toStrictEqual([
+        declarationsWithMetadata[2],
+      ]);
+    });
+  });
 });
